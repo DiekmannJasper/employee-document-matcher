@@ -1,0 +1,39 @@
+# Operating systems and IDEs
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.iml
+
+# Java and Maven
+backend/target/
+*.class
+*.log
+
+# Node and Vite
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+*.tsbuildinfo
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+**/application-local.yml
+**/application-local.yaml
+
+# Local document storage and uploaded files
+data/
+uploads/
+*.pdf
+
+# Local challenge analysis artifacts
+coding-challenge.pdf
+pdf.png
+
+# Test and tooling output
+coverage/
+test-results/
+playwright-report/
+*.tmp
