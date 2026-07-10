@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class HealthEndpointTest {
+
     @LocalServerPort
     private int port;
 
@@ -20,7 +21,8 @@ class HealthEndpointTest {
     @Test
     void reportsApplicationHealthWithoutExposingDetails() {
         var response = restTemplate.getForEntity(
-                "http://localhost:" + port + "/actuator/health", String.class);
+                "http://localhost:" + port + "/actuator/health",
+                String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isEqualTo("{\"status\":\"UP\"}");
