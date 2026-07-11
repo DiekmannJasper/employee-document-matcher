@@ -1,16 +1,15 @@
-import ChevronLeft from "@mui/icons-material/ChevronLeft";
-import ChevronRight from "@mui/icons-material/ChevronRight";
+import MenuIcon from "@mui/icons-material/Menu";
 import { AppBar, Box, IconButton, Toolbar, Typography } from "@mui/material";
 import { GlobalSearchField } from "../GlobalSearchField/GlobalSearchField";
 import { GlobalUploadButton } from "../GlobalUploadButton/GlobalUploadButton";
 
 interface AppTopBarProps {
-  readonly navExpanded: boolean;
-  readonly onToggleNavigation: () => void;
+  readonly mobileNavOpen: boolean;
+  readonly onToggleMobileNavigation: () => void;
   readonly onUploadClick: () => void;
 }
 
-export function AppTopBar({ navExpanded, onToggleNavigation, onUploadClick }: AppTopBarProps) {
+export function AppTopBar({ mobileNavOpen, onToggleMobileNavigation, onUploadClick }: AppTopBarProps) {
   return (
     <AppBar
       position="fixed"
@@ -25,10 +24,11 @@ export function AppTopBar({ navExpanded, onToggleNavigation, onUploadClick }: Ap
       <Toolbar sx={{ gap: 2 }}>
         <IconButton
           color="inherit"
-          aria-label={navExpanded ? "Navigation verkleinern" : "Navigation vergrößern"}
-          onClick={onToggleNavigation}
+          aria-label={mobileNavOpen ? "Navigation schließen" : "Navigation öffnen"}
+          onClick={onToggleMobileNavigation}
+          sx={{ display: { md: "none" } }}
         >
-          {navExpanded ? <ChevronLeft /> : <ChevronRight />}
+          <MenuIcon />
         </IconButton>
         <Typography component="h1" variant="h6" noWrap sx={{ display: { xs: "none", sm: "block" } }}>
           Employee Document Matcher

@@ -1,4 +1,6 @@
-import { Box, Drawer, Toolbar } from "@mui/material";
+import ChevronLeft from "@mui/icons-material/ChevronLeft";
+import ChevronRight from "@mui/icons-material/ChevronRight";
+import { Box, Drawer, IconButton, Toolbar } from "@mui/material";
 import { NavigationList } from "../NavigationList/NavigationList";
 import { navItems } from "../../navigation/navItems";
 
@@ -11,9 +13,10 @@ interface NavigationDrawerProps {
   readonly width: number;
   readonly collapsed: boolean;
   readonly onClose: () => void;
+  readonly onToggle: () => void;
 }
 
-export function NavigationDrawer({ variant, open, width, collapsed, onClose }: NavigationDrawerProps) {
+export function NavigationDrawer({ variant, open, width, collapsed, onClose, onToggle }: NavigationDrawerProps) {
   return (
     <Drawer
       variant={variant}
@@ -33,13 +36,33 @@ export function NavigationDrawer({ variant, open, width, collapsed, onClose }: N
         },
       }}
     >
-      <Toolbar />
-      <Box role="navigation" aria-label="Hauptnavigation">
-        <NavigationList
-          items={navItems}
-          collapsed={collapsed}
-          onNavigate={variant === "temporary" ? onClose : undefined}
-        />
+      <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
+        <Toolbar />
+        <Box role="navigation" aria-label="Hauptnavigation" sx={{ flexGrow: 1, overflowY: "auto" }}>
+          <NavigationList
+            items={navItems}
+            collapsed={collapsed}
+            onNavigate={variant === "temporary" ? onClose : undefined}
+          />
+        </Box>
+        {variant === "permanent" && (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: collapsed ? "center" : "flex-end",
+              borderTop: 1,
+              borderColor: "divider",
+              p: 1,
+            }}
+          >
+            <IconButton
+              onClick={onToggle}
+              aria-label={collapsed ? "Navigation vergrößern" : "Navigation verkleinern"}
+            >
+              {collapsed ? <ChevronRight /> : <ChevronLeft />}
+            </IconButton>
+          </Box>
+        )}
       </Box>
     </Drawer>
   );

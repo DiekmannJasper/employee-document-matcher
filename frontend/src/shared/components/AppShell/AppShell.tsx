@@ -14,10 +14,6 @@ export function AppShell({ children }: PropsWithChildren) {
   const [desktopNavExpanded, setDesktopNavExpanded] = useState(true);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
 
-  const navExpanded = isDesktop ? desktopNavExpanded : mobileNavOpen;
-  const toggleNav = () =>
-    isDesktop ? setDesktopNavExpanded((expanded) => !expanded) : setMobileNavOpen((open) => !open);
-
   const desktopDrawerWidth = desktopNavExpanded ? DRAWER_WIDTH : MINI_DRAWER_WIDTH;
   const mainOffsetLeft = isDesktop ? desktopDrawerWidth : 0;
 
@@ -25,8 +21,8 @@ export function AppShell({ children }: PropsWithChildren) {
     <SearchProvider>
       <Box sx={{ display: "flex" }}>
         <AppTopBar
-          navExpanded={navExpanded}
-          onToggleNavigation={toggleNav}
+          mobileNavOpen={mobileNavOpen}
+          onToggleMobileNavigation={() => setMobileNavOpen((open) => !open)}
           onUploadClick={() => setUploadDialogOpen(true)}
         />
         <NavigationDrawer
@@ -35,6 +31,7 @@ export function AppShell({ children }: PropsWithChildren) {
           width={isDesktop ? desktopDrawerWidth : DRAWER_WIDTH}
           collapsed={isDesktop && !desktopNavExpanded}
           onClose={() => setMobileNavOpen(false)}
+          onToggle={() => setDesktopNavExpanded((expanded) => !expanded)}
         />
         <Box
           component="main"

@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { AppProviders } from "../../../app/providers/AppProviders";
 import { AppShell } from "./AppShell";
 
@@ -14,7 +14,24 @@ function renderAppShell() {
   );
 }
 
+function mockDesktopViewport() {
+  window.matchMedia = (query: string) => ({
+    matches: query.includes("min-width"),
+    media: query,
+    onchange: null,
+    addListener: () => {},
+    removeListener: () => {},
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    dispatchEvent: () => false,
+  });
+}
+
 describe("AppShell", () => {
+  afterEach(() => {
+    window.history.pushState({}, "", "/");
+  });
+
   it("renders the app title and page content", () => {
     renderAppShell();
 
@@ -22,14 +39,12 @@ describe("AppShell", () => {
     expect(screen.getByText("page content")).toBeInTheDocument();
   });
 
-  it("toggles navigation from the topbar arrow button", async () => {
+  it("opens mobile navigation from the topbar menu button", async () => {
     const user = userEvent.setup();
     renderAppShell();
 
-    await user.click(screen.getByRole("button", { name: "Navigation vergrößern" }));
+    await user.click(screen.getByRole("button", { name: "Navigation öffnen" }));
 
-    // The open mobile drawer is a modal; MUI marks the rest of the app aria-hidden
-    // while it's open, so the toggle button itself is intentionally not queried here.
     expect(screen.getByRole("link", { name: "Mitarbeiter" })).toBeInTheDocument();
   });
 
@@ -46,5 +61,37 @@ describe("AppShell", () => {
     renderAppShell();
 
     expect(screen.getByRole("button", { name: "Zurück" })).toBeInTheDocument();
+  });
+
+  it("disables the back button on the dashboard", () => {
+    renderAppShell();
+
+    expect(screen.getByRole("button", { name: "Zurück" })).toBeDisabled();
+  });
+
+  it("enables the back button away from the dashboard", () => {
+    window.history.pushState({}, "", "/employees/10000000-0000-0000-0000-000000000001");
+    renderAppShell();
+
+    expect(screen.getByRole("button", { name: "Zurück" })).toBeEnabled();
+  });
+
+  describe("on desktop", () => {
+    const originalMatchMedia = window.matchMedia;
+
+    beforeEach(mockDesktopViewport);
+
+    afterEach(() => {
+      window.matchMedia = originalMatchMedia;
+    });
+
+    it("collapses the drawer to a mini rail via the in-drawer toggle", async () => {
+      const user = userEvent.setup();
+      renderAppShell();
+
+      await user.click(screen.getByRole("button", { name: "Navigation verkleinern" }));
+
+      expect(screen.getByRole("button", { name: "Navigation vergrößern" })).toBeInTheDocument();
+    });
   });
 });

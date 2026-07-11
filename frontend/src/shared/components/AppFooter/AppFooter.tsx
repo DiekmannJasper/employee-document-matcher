@@ -1,6 +1,6 @@
 import ArrowBack from "@mui/icons-material/ArrowBack";
 import { Box, Button } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 interface AppFooterProps {
   readonly offsetLeft: number;
@@ -8,6 +8,8 @@ interface AppFooterProps {
 
 export function AppFooter({ offsetLeft }: AppFooterProps) {
   const navigate = useNavigate();
+  const location = useLocation();
+  const canGoBack = location.pathname !== "/";
 
   return (
     <Box
@@ -27,7 +29,7 @@ export function AppFooter({ offsetLeft }: AppFooterProps) {
         transition: (theme) => theme.transitions.create("left"),
       }}
     >
-      <Button startIcon={<ArrowBack />} onClick={() => navigate(-1)}>
+      <Button startIcon={<ArrowBack />} disabled={!canGoBack} onClick={() => navigate(-1)}>
         Zurück
       </Button>
     </Box>
