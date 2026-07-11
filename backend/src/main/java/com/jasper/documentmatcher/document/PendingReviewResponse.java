@@ -1,5 +1,6 @@
 package com.jasper.documentmatcher.document;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -9,6 +10,9 @@ public record PendingReviewResponse(
         MatchStatus matchStatus,
         UUID suggestedEmployeeId,
         String evidence,
+        UUID suggestedCategoryId,
+        String suggestedCategoryName,
+        BigDecimal categoryConfidence,
         Instant uploadedAt) {
 
     static PendingReviewResponse from(Document document, DocumentAnalysis analysis) {
@@ -18,6 +22,9 @@ public record PendingReviewResponse(
                 analysis.getMatchStatus(),
                 analysis.getMatchedEmployeeId(),
                 analysis.getEvidence(),
+                analysis.getSuggestedCategoryId(),
+                analysis.getSuggestedCategoryName(),
+                analysis.getCategoryConfidence(),
                 document.getUploadedAt());
     }
 }

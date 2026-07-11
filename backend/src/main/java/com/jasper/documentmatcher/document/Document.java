@@ -19,6 +19,9 @@ public class Document {
     @Column(name = "employee_id")
     private UUID employeeId;
 
+    @Column(name = "category_id")
+    private UUID categoryId;
+
     @Column(name = "original_filename", nullable = false)
     private String originalFilename;
 
@@ -58,6 +61,10 @@ public class Document {
         return employeeId;
     }
 
+    public UUID getCategoryId() {
+        return categoryId;
+    }
+
     public String getOriginalFilename() {
         return originalFilename;
     }
@@ -77,5 +84,9 @@ public class Document {
     void assignToEmployee(UUID employeeId) {
         this.employeeId = employeeId;
         this.status = DocumentStatus.ASSIGNED;
+    }
+
+    void assignCategory(UUID categoryId) {
+        this.categoryId = categoryId;
     }
 }

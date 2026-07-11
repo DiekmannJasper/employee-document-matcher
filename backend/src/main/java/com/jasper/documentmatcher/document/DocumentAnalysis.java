@@ -33,6 +33,9 @@ public class DocumentAnalysis {
     @Column(name = "suggested_category_id")
     private UUID suggestedCategoryId;
 
+    @Column(name = "suggested_category_name")
+    private String suggestedCategoryName;
+
     @Column(name = "category_confidence")
     private BigDecimal categoryConfidence;
 
@@ -56,6 +59,7 @@ public class DocumentAnalysis {
             UUID matchedEmployeeId,
             BigDecimal matchScore,
             UUID suggestedCategoryId,
+            String suggestedCategoryName,
             BigDecimal categoryConfidence,
             String evidence,
             ReviewStatus reviewStatus,
@@ -66,6 +70,7 @@ public class DocumentAnalysis {
         this.matchedEmployeeId = matchedEmployeeId;
         this.matchScore = matchScore;
         this.suggestedCategoryId = suggestedCategoryId;
+        this.suggestedCategoryName = suggestedCategoryName;
         this.categoryConfidence = categoryConfidence;
         this.evidence = evidence;
         this.reviewStatus = reviewStatus;
@@ -94,6 +99,10 @@ public class DocumentAnalysis {
 
     public UUID getSuggestedCategoryId() {
         return suggestedCategoryId;
+    }
+
+    public String getSuggestedCategoryName() {
+        return suggestedCategoryName;
     }
 
     public BigDecimal getCategoryConfidence() {

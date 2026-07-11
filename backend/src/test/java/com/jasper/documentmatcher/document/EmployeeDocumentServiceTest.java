@@ -2,7 +2,6 @@ package com.jasper.documentmatcher.document;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import com.jasper.documentmatcher.employee.EmployeeNotFoundException;
@@ -21,31 +20,19 @@ class EmployeeDocumentServiceTest {
 
     @Mock private EmployeeService employeeService;
     @Mock private DocumentRepository documentRepository;
-    @Mock private DocumentAnalysisRepository documentAnalysisRepository;
 
     @Test
-    void returnsDocumentsWithSuggestedCategoryFromAnalysis() {
+    void returnsDocumentsWithTheirConfirmedCategory() {
         var employeeId = UUID.randomUUID();
         var categoryId = UUID.randomUUID();
         var document = new Document(
                 UUID.randomUUID(), employeeId, "vertrag.pdf", "storage-key", DocumentStatus.ASSIGNED, Instant.now());
-        var analysis = new DocumentAnalysis(
-                UUID.randomUUID(),
-                document.getId(),
-                MatchStatus.MATCHED,
-                employeeId,
-                null,
-                categoryId,
-                null,
-                "Name gefunden",
-                ReviewStatus.CONFIRMED,
-                Instant.now());
+        document.assignCategory(categoryId);
         when(employeeService.findById(employeeId))
                 .thenReturn(new EmployeeResponse(employeeId, "EMP-1001", "Anna", "Müller", "IT"));
         when(documentRepository.findByEmployeeId(employeeId)).thenReturn(List.of(document));
-        when(documentAnalysisRepository.findByDocumentIdIn(any())).thenReturn(List.of(analysis));
 
-        var service = new EmployeeDocumentService(employeeService, documentRepository, documentAnalysisRepository);
+        var service = new EmployeeDocumentService(employeeService, documentRepository);
         var result = service.findByEmployee(employeeId);
 
         assertThat(result).hasSize(1);
@@ -59,9 +46,8 @@ class EmployeeDocumentServiceTest {
         when(employeeService.findById(employeeId))
                 .thenReturn(new EmployeeResponse(employeeId, "EMP-1001", "Anna", "Müller", "IT"));
         when(documentRepository.findByEmployeeId(employeeId)).thenReturn(List.of());
-        when(documentAnalysisRepository.findByDocumentIdIn(any())).thenReturn(List.of());
 
-        var service = new EmployeeDocumentService(employeeService, documentRepository, documentAnalysisRepository);
+        var service = new EmployeeDocumentService(employeeService, documentRepository);
 
         assertThat(service.findByEmployee(employeeId)).isEmpty();
     }
@@ -71,7 +57,7 @@ class EmployeeDocumentServiceTest {
         var employeeId = UUID.randomUUID();
         when(employeeService.findById(employeeId)).thenThrow(new EmployeeNotFoundException(employeeId));
 
-        var service = new EmployeeDocumentService(employeeService, documentRepository, documentAnalysisRepository);
+        var service = new EmployeeDocumentService(employeeService, documentRepository);
 
         assertThatThrownBy(() -> service.findByEmployee(employeeId)).isInstanceOf(EmployeeNotFoundException.class);
     }

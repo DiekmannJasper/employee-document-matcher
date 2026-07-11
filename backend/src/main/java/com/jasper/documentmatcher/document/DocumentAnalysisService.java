@@ -1,7 +1,12 @@
 package com.jasper.documentmatcher.document;
 
+import com.jasper.documentmatcher.category.DocumentCategoryRepository;
+import com.jasper.documentmatcher.classification.CategoryCandidate;
+import com.jasper.documentmatcher.classification.ClassificationResult;
+import com.jasper.documentmatcher.classification.DocumentClassifier;
 import com.jasper.documentmatcher.employee.EmployeeRepository;
 import com.jasper.documentmatcher.matching.MatchCandidate;
+import com.jasper.documentmatcher.matching.PersonMatchResult;
 import com.jasper.documentmatcher.matching.PersonMatcher;
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -16,17 +21,23 @@ class DocumentAnalysisService {
 
     private final PdfTextExtractor pdfTextExtractor;
     private final PersonMatcher personMatcher;
+    private final DocumentClassifier documentClassifier;
     private final EmployeeRepository employeeRepository;
+    private final DocumentCategoryRepository documentCategoryRepository;
     private final DocumentAnalysisRepository documentAnalysisRepository;
 
     DocumentAnalysisService(
             PdfTextExtractor pdfTextExtractor,
             PersonMatcher personMatcher,
+            DocumentClassifier documentClassifier,
             EmployeeRepository employeeRepository,
+            DocumentCategoryRepository documentCategoryRepository,
             DocumentAnalysisRepository documentAnalysisRepository) {
         this.pdfTextExtractor = pdfTextExtractor;
         this.personMatcher = personMatcher;
+        this.documentClassifier = documentClassifier;
         this.employeeRepository = employeeRepository;
+        this.documentCategoryRepository = documentCategoryRepository;
         this.documentAnalysisRepository = documentAnalysisRepository;
     }
 
@@ -34,19 +45,15 @@ class DocumentAnalysisService {
         var extraction = pdfTextExtractor.extract(pdfContent);
 
         var analysis = extraction.status() == PdfExtractionStatus.SUCCESS
-                ? matchAgainstEmployees(documentId, extraction.text())
+                ? analyzeReadableDocument(documentId, extraction.text())
                 : unreadableDocument(documentId, extraction.status());
 
         return documentAnalysisRepository.save(analysis);
     }
 
-    private DocumentAnalysis matchAgainstEmployees(UUID documentId, String text) {
-        var candidates = employeeRepository.findAll().stream()
-                .map(employee -> new MatchCandidate(
-                        employee.getId(), employee.getFirstName() + " " + employee.getLastName()))
-                .toList();
-
-        var matchResult = personMatcher.match(text, candidates);
+    private DocumentAnalysis analyzeReadableDocument(UUID documentId, String text) {
+        var matchResult = matchPerson(text);
+        var classification = classifyCategory(text);
         var score = matchResult.status() == MatchStatus.MATCHED ? DETERMINISTIC_MATCH_SCORE : null;
 
         return new DocumentAnalysis(
@@ -55,11 +62,29 @@ class DocumentAnalysisService {
                 matchResult.status(),
                 matchResult.matchedEmployeeId(),
                 score,
-                null,
-                null,
+                classification.categoryId(),
+                classification.suggestedCategoryName(),
+                classification.confidence(),
                 matchResult.evidence(),
                 ReviewStatus.PENDING,
                 Instant.now());
+    }
+
+    private PersonMatchResult matchPerson(String text) {
+        var candidates = employeeRepository.findAll().stream()
+                .map(employee -> new MatchCandidate(
+                        employee.getId(), employee.getFirstName() + " " + employee.getLastName()))
+                .toList();
+
+        return personMatcher.match(text, candidates);
+    }
+
+    private ClassificationResult classifyCategory(String text) {
+        var candidates = documentCategoryRepository.findAll().stream()
+                .map(category -> new CategoryCandidate(category.getId(), category.getCode(), category.getDisplayName()))
+                .toList();
+
+        return documentClassifier.classify(text, candidates);
     }
 
     private DocumentAnalysis unreadableDocument(UUID documentId, PdfExtractionStatus extractionStatus) {
@@ -75,6 +100,7 @@ class DocumentAnalysisService {
                 UUID.randomUUID(),
                 documentId,
                 MatchStatus.NO_MATCH,
+                null,
                 null,
                 null,
                 null,

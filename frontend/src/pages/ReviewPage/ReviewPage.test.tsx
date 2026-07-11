@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AppProviders } from "../../app/providers/AppProviders";
+import * as useDocumentCategoriesModule from "../../features/document-categories/hooks/useDocumentCategories";
 import * as useConfirmMatchModule from "../../features/document-review/hooks/useConfirmMatch";
 import * as usePendingReviewsModule from "../../features/document-review/hooks/usePendingReviews";
 import * as useEmployeesModule from "../../features/employees/hooks/useEmployees";
@@ -10,10 +11,12 @@ import { ReviewPage } from "./ReviewPage";
 vi.mock("../../features/document-review/hooks/usePendingReviews");
 vi.mock("../../features/document-review/hooks/useConfirmMatch");
 vi.mock("../../features/employees/hooks/useEmployees");
+vi.mock("../../features/document-categories/hooks/useDocumentCategories");
 
 const usePendingReviews = vi.mocked(usePendingReviewsModule.usePendingReviews);
 const useConfirmMatch = vi.mocked(useConfirmMatchModule.useConfirmMatch);
 const useEmployees = vi.mocked(useEmployeesModule.useEmployees);
+const useDocumentCategories = vi.mocked(useDocumentCategoriesModule.useDocumentCategories);
 
 const EMPLOYEE = {
   id: "10000000-0000-0000-0000-000000000001",
@@ -21,6 +24,13 @@ const EMPLOYEE = {
   firstName: "Anna",
   lastName: "Müller",
   department: "Produktentwicklung",
+};
+
+const CATEGORY = {
+  id: "20000000-0000-0000-0000-000000000001",
+  code: "CONTRACT",
+  displayName: "Verträge",
+  origin: "STANDARD" as const,
 };
 
 function renderPage() {
@@ -50,6 +60,7 @@ describe("ReviewPage", () => {
   it("shows a loading state while pending reviews are loading", () => {
     usePendingReviews.mockReturnValue({ isPending: true, isError: false, data: undefined, refetch: vi.fn() } as never);
     useEmployees.mockReturnValue({ isPending: false, isError: false, data: [EMPLOYEE], refetch: vi.fn() } as never);
+    useDocumentCategories.mockReturnValue({ isPending: false, isError: false, data: [CATEGORY], refetch: vi.fn() } as never);
     useConfirmMatch.mockReturnValue(idleConfirmMutation() as never);
 
     renderPage();
@@ -60,6 +71,7 @@ describe("ReviewPage", () => {
   it("shows an empty state when there are no pending reviews", () => {
     usePendingReviews.mockReturnValue({ isPending: false, isError: false, data: [], refetch: vi.fn() } as never);
     useEmployees.mockReturnValue({ isPending: false, isError: false, data: [EMPLOYEE], refetch: vi.fn() } as never);
+    useDocumentCategories.mockReturnValue({ isPending: false, isError: false, data: [CATEGORY], refetch: vi.fn() } as never);
     useConfirmMatch.mockReturnValue(idleConfirmMutation() as never);
 
     renderPage();
@@ -67,7 +79,7 @@ describe("ReviewPage", () => {
     expect(screen.getByText("Es liegen aktuell keine offenen Prüffälle vor.")).toBeInTheDocument();
   });
 
-  it("shows a suggested match and confirms it", async () => {
+  it("shows a suggested match and confirms it with the suggested category", async () => {
     const user = userEvent.setup();
     const mutate = vi.fn();
     usePendingReviews.mockReturnValue({
@@ -80,12 +92,16 @@ describe("ReviewPage", () => {
           matchStatus: "MATCHED",
           suggestedEmployeeId: EMPLOYEE.id,
           evidence: "Name im Dokument gefunden: 'Anna Müller'",
+          suggestedCategoryId: CATEGORY.id,
+          suggestedCategoryName: null,
+          categoryConfidence: 0.9,
           uploadedAt: "2026-01-15T10:00:00Z",
         },
       ],
       refetch: vi.fn(),
     } as never);
     useEmployees.mockReturnValue({ isPending: false, isError: false, data: [EMPLOYEE], refetch: vi.fn() } as never);
+    useDocumentCategories.mockReturnValue({ isPending: false, isError: false, data: [CATEGORY], refetch: vi.fn() } as never);
     useConfirmMatch.mockReturnValue(idleConfirmMutation({ mutate }) as never);
 
     renderPage();
@@ -98,6 +114,50 @@ describe("ReviewPage", () => {
     expect(mutate).toHaveBeenCalledWith({
       documentId: "30000000-0000-0000-0000-000000000001",
       employeeId: EMPLOYEE.id,
+      categoryId: CATEGORY.id,
+      newCategoryName: null,
+    });
+  });
+
+  it("confirms a suggested new category as free text", async () => {
+    const user = userEvent.setup();
+    const mutate = vi.fn();
+    usePendingReviews.mockReturnValue({
+      isPending: false,
+      isError: false,
+      data: [
+        {
+          documentId: "30000000-0000-0000-0000-000000000003",
+          originalFilename: "kuendigung.pdf",
+          matchStatus: "NO_MATCH",
+          suggestedEmployeeId: null,
+          evidence: "Schlüsselwort erkannt: 'kündigung'",
+          suggestedCategoryId: null,
+          suggestedCategoryName: "Kündigungen",
+          categoryConfidence: 0.6,
+          uploadedAt: "2026-01-15T10:00:00Z",
+        },
+      ],
+      refetch: vi.fn(),
+    } as never);
+    useEmployees.mockReturnValue({ isPending: false, isError: false, data: [EMPLOYEE], refetch: vi.fn() } as never);
+    useDocumentCategories.mockReturnValue({ isPending: false, isError: false, data: [CATEGORY], refetch: vi.fn() } as never);
+    useConfirmMatch.mockReturnValue(idleConfirmMutation({ mutate }) as never);
+
+    renderPage();
+
+    expect(screen.getByText('Vorschlag für neue Kategorie: "Kündigungen"')).toBeInTheDocument();
+    expect(screen.getByDisplayValue("Kündigungen")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("combobox", { name: "Mitarbeiter auswählen" }));
+    await user.click(await screen.findByRole("option", { name: /Anna Müller/ }));
+    await user.click(screen.getByRole("button", { name: "Bestätigen" }));
+
+    expect(mutate).toHaveBeenCalledWith({
+      documentId: "30000000-0000-0000-0000-000000000003",
+      employeeId: EMPLOYEE.id,
+      categoryId: null,
+      newCategoryName: "Kündigungen",
     });
   });
 
@@ -112,12 +172,16 @@ describe("ReviewPage", () => {
           matchStatus: "NO_MATCH",
           suggestedEmployeeId: null,
           evidence: "Kein Mitarbeitername im Dokument gefunden.",
+          suggestedCategoryId: null,
+          suggestedCategoryName: null,
+          categoryConfidence: null,
           uploadedAt: "2026-01-15T10:00:00Z",
         },
       ],
       refetch: vi.fn(),
     } as never);
     useEmployees.mockReturnValue({ isPending: false, isError: false, data: [EMPLOYEE], refetch: vi.fn() } as never);
+    useDocumentCategories.mockReturnValue({ isPending: false, isError: false, data: [CATEGORY], refetch: vi.fn() } as never);
     useConfirmMatch.mockReturnValue(idleConfirmMutation() as never);
 
     renderPage();

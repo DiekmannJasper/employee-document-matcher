@@ -34,7 +34,7 @@ class DocumentReviewControllerTest {
     @Test
     void listsPendingReviews() throws Exception {
         var response = new PendingReviewResponse(
-                UUID.randomUUID(), "vertrag.pdf", MatchStatus.NO_MATCH, null, "Kein Treffer", Instant.now());
+                UUID.randomUUID(), "vertrag.pdf", MatchStatus.NO_MATCH, null, "Kein Treffer", null, null, null, Instant.now());
         when(documentReviewService.findPendingReviews()).thenReturn(List.of(response));
 
         mockMvc.perform(get("/api/documents/pending-review"))
@@ -53,7 +53,7 @@ class DocumentReviewControllerTest {
 
         mockMvc.perform(post("/api/documents/{documentId}/confirmation", documentId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new ConfirmMatchRequest(employeeId))))
+                        .content(objectMapper.writeValueAsString(new ConfirmMatchRequest(employeeId, null, null))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.originalFilename").value("vertrag.pdf"));
     }
@@ -67,7 +67,7 @@ class DocumentReviewControllerTest {
 
         mockMvc.perform(post("/api/documents/{documentId}/confirmation", documentId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new ConfirmMatchRequest(employeeId))))
+                        .content(objectMapper.writeValueAsString(new ConfirmMatchRequest(employeeId, null, null))))
                 .andExpect(status().isConflict());
     }
 
@@ -79,7 +79,7 @@ class DocumentReviewControllerTest {
 
         mockMvc.perform(post("/api/documents/{documentId}/confirmation", documentId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new ConfirmMatchRequest(employeeId))))
+                        .content(objectMapper.writeValueAsString(new ConfirmMatchRequest(employeeId, null, null))))
                 .andExpect(status().isNotFound());
     }
 }

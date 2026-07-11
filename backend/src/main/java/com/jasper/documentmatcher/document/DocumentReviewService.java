@@ -1,7 +1,11 @@
 package com.jasper.documentmatcher.document;
 
+import com.jasper.documentmatcher.category.CategoryOrigin;
+import com.jasper.documentmatcher.category.DocumentCategoryService;
 import com.jasper.documentmatcher.employee.EmployeeService;
 import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,14 +14,17 @@ import org.springframework.transaction.annotation.Transactional;
 class DocumentReviewService {
 
     private final EmployeeService employeeService;
+    private final DocumentCategoryService documentCategoryService;
     private final DocumentRepository documentRepository;
     private final DocumentAnalysisRepository documentAnalysisRepository;
 
     DocumentReviewService(
             EmployeeService employeeService,
+            DocumentCategoryService documentCategoryService,
             DocumentRepository documentRepository,
             DocumentAnalysisRepository documentAnalysisRepository) {
         this.employeeService = employeeService;
+        this.documentCategoryService = documentCategoryService;
         this.documentRepository = documentRepository;
         this.documentAnalysisRepository = documentAnalysisRepository;
     }
@@ -37,6 +44,9 @@ class DocumentReviewService {
         if (request == null || request.employeeId() == null) {
             throw new InvalidReviewRequestException("employeeId ist erforderlich.");
         }
+        if (request.categoryId() != null && request.newCategoryName() != null) {
+            throw new InvalidReviewRequestException("categoryId und newCategoryName schließen sich aus.");
+        }
 
         employeeService.findById(request.employeeId());
 
@@ -51,8 +61,30 @@ class DocumentReviewService {
         }
 
         document.assignToEmployee(request.employeeId());
+        resolveCategory(request, analysis).ifPresent(document::assignCategory);
         analysis.confirm();
 
-        return DocumentSummaryResponse.from(document, analysis);
+        return DocumentSummaryResponse.from(document);
+    }
+
+    private Optional<UUID> resolveCategory(ConfirmMatchRequest request, DocumentAnalysis analysis) {
+        if (request.categoryId() != null) {
+            documentCategoryService.findById(request.categoryId());
+            return Optional.of(request.categoryId());
+        }
+
+        if (request.newCategoryName() != null && !request.newCategoryName().isBlank()) {
+            var origin = isSuggestedName(request.newCategoryName(), analysis.getSuggestedCategoryName())
+                    ? CategoryOrigin.LLM_SUGGESTED
+                    : CategoryOrigin.MANUAL;
+            return Optional.of(documentCategoryService.resolveOrCreateByDisplayName(request.newCategoryName(), origin));
+        }
+
+        return Optional.empty();
+    }
+
+    private boolean isSuggestedName(String confirmedName, String suggestedName) {
+        return suggestedName != null
+                && suggestedName.trim().toLowerCase(Locale.ROOT).equals(confirmedName.trim().toLowerCase(Locale.ROOT));
     }
 }

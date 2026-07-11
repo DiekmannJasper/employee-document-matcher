@@ -1,4 +1,5 @@
 import { Stack, Typography } from "@mui/material";
+import { useDocumentCategories } from "../../features/document-categories/hooks/useDocumentCategories";
 import { PendingReviewCard } from "../../features/document-review/components/PendingReviewCard";
 import { usePendingReviews } from "../../features/document-review/hooks/usePendingReviews";
 import { useEmployees } from "../../features/employees/hooks/useEmployees";
@@ -10,9 +11,10 @@ import { PageContainer } from "../../shared/components/PageContainer/PageContain
 export function ReviewPage() {
   const pendingReviewsQuery = usePendingReviews();
   const employeesQuery = useEmployees();
+  const categoriesQuery = useDocumentCategories();
 
-  const isPending = pendingReviewsQuery.isPending || employeesQuery.isPending;
-  const isError = pendingReviewsQuery.isError || employeesQuery.isError;
+  const isPending = pendingReviewsQuery.isPending || employeesQuery.isPending || categoriesQuery.isPending;
+  const isError = pendingReviewsQuery.isError || employeesQuery.isError || categoriesQuery.isError;
 
   return (
     <PageContainer>
@@ -26,6 +28,7 @@ export function ReviewPage() {
           onRetry={() => {
             pendingReviewsQuery.refetch();
             employeesQuery.refetch();
+            categoriesQuery.refetch();
           }}
         />
       )}
@@ -35,7 +38,12 @@ export function ReviewPage() {
       {!isPending && !isError && pendingReviewsQuery.data && pendingReviewsQuery.data.length > 0 && (
         <Stack spacing={2}>
           {pendingReviewsQuery.data.map((review) => (
-            <PendingReviewCard key={review.documentId} review={review} employees={employeesQuery.data ?? []} />
+            <PendingReviewCard
+              key={review.documentId}
+              review={review}
+              employees={employeesQuery.data ?? []}
+              categories={categoriesQuery.data ?? []}
+            />
           ))}
         </Stack>
       )}
