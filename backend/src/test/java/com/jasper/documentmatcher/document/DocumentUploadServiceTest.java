@@ -18,17 +18,20 @@ class DocumentUploadServiceTest {
     @Mock private DocumentUploadValidator validator;
     @Mock private DocumentStorage documentStorage;
     @Mock private DocumentRepository documentRepository;
+    @Mock private DocumentAnalysisService documentAnalysisService;
 
     @Test
-    void storesValidatedFileAndPersistsDocumentMetadata() {
+    void storesValidatedFileTriggersAnalysisAndPersistsDocumentMetadata() {
         var file = new MockMultipartFile("file", "vertrag.pdf", "application/pdf", "%PDF-1.4".getBytes());
         when(documentStorage.store(any())).thenReturn("generated-key.pdf");
-        when(documentRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        var service = new DocumentUploadService(validator, documentStorage, documentRepository);
+        var service =
+                new DocumentUploadService(validator, documentStorage, documentRepository, documentAnalysisService);
         var response = service.upload(file);
 
         verify(validator).validate(file);
+        verify(documentRepository).save(any());
+        verify(documentAnalysisService).analyze(any(), any());
         assertThat(response.originalFilename()).isEqualTo("vertrag.pdf");
         assertThat(response.status()).isEqualTo(DocumentStatus.UPLOADED);
     }

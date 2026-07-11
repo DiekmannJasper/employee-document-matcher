@@ -13,14 +13,17 @@ public class DocumentUploadService {
     private final DocumentUploadValidator validator;
     private final DocumentStorage documentStorage;
     private final DocumentRepository documentRepository;
+    private final DocumentAnalysisService documentAnalysisService;
 
     public DocumentUploadService(
             DocumentUploadValidator validator,
             DocumentStorage documentStorage,
-            DocumentRepository documentRepository) {
+            DocumentRepository documentRepository,
+            DocumentAnalysisService documentAnalysisService) {
         this.validator = validator;
         this.documentStorage = documentStorage;
         this.documentRepository = documentRepository;
+        this.documentAnalysisService = documentAnalysisService;
     }
 
     public DocumentUploadResponse upload(MultipartFile file) {
@@ -35,7 +38,14 @@ public class DocumentUploadService {
 
         var document = new Document(
                 UUID.randomUUID(), null, file.getOriginalFilename(), storageKey, DocumentStatus.UPLOADED, Instant.now());
+        documentRepository.save(document);
 
-        return DocumentUploadResponse.from(documentRepository.save(document));
+        try (var content = file.getInputStream()) {
+            documentAnalysisService.analyze(document.getId(), content);
+        } catch (IOException e) {
+            throw new InvalidUploadException("Die Datei konnte nicht gelesen werden.");
+        }
+
+        return DocumentUploadResponse.from(document);
     }
 }
