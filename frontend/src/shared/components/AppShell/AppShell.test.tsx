@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { AppProviders } from "../../../app/providers/AppProviders";
 import { AppShell } from "./AppShell";
 
@@ -15,6 +15,10 @@ function renderAppShell() {
 }
 
 describe("AppShell", () => {
+  beforeEach(() => {
+    window.history.pushState({}, "", "/");
+  });
+
   it("renders the app title and page content", () => {
     renderAppShell();
 
@@ -22,11 +26,11 @@ describe("AppShell", () => {
     expect(screen.getByText("page content")).toBeInTheDocument();
   });
 
-  it("opens navigation from the menu button and links to the dashboard", async () => {
+  it("toggles navigation from the menu button", async () => {
     const user = userEvent.setup();
     renderAppShell();
 
-    await user.click(screen.getByRole("button", { name: "Navigation öffnen" }));
+    await user.click(screen.getByRole("button", { name: "Navigation umschalten" }));
 
     expect(screen.getByRole("link", { name: "Mitarbeiter" })).toBeInTheDocument();
   });
@@ -38,5 +42,27 @@ describe("AppShell", () => {
     await user.click(screen.getByRole("button", { name: "PDF hochladen" }));
 
     expect(screen.getByRole("dialog", { name: "PDF hochladen" })).toBeInTheDocument();
+  });
+
+  it("does not show a footer or back button on the dashboard", () => {
+    renderAppShell();
+
+    expect(screen.queryByRole("button", { name: "Zurück" })).not.toBeInTheDocument();
+  });
+
+  describe("on a non-root route", () => {
+    beforeEach(() => {
+      window.history.pushState({}, "", "/employees/10000000-0000-0000-0000-000000000001");
+    });
+
+    it("shows a fixed footer with a back button", () => {
+      renderAppShell();
+
+      expect(screen.getByRole("button", { name: "Zurück" })).toBeInTheDocument();
+    });
+  });
+
+  afterEach(() => {
+    window.history.pushState({}, "", "/");
   });
 });

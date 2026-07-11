@@ -5,7 +5,7 @@ import { navItems } from "../../navigation/navItems";
 export const DRAWER_WIDTH = 240;
 
 interface NavigationDrawerProps {
-  readonly variant: "permanent" | "temporary";
+  readonly variant: "persistent" | "temporary";
   readonly open: boolean;
   readonly onClose: () => void;
 }
