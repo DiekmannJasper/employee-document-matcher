@@ -16,6 +16,10 @@ spring:
         jdbc:
           time_zone: UTC
 
+app:
+  storage:
+    local-path: ${STORAGE_LOCAL_PATH:./data/documents}
+
 management:
   endpoints:
     web:
