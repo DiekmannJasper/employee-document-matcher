@@ -12,13 +12,13 @@ interface AppTopBarProps {
 export function AppTopBar({ mobileNavOpen, onToggleMobileNavigation, onUploadClick }: AppTopBarProps) {
   return (
     <AppBar
-      position="fixed"
+      position="static"
       color="default"
       elevation={0}
       sx={{
+        flexShrink: 0,
         borderBottom: 1,
         borderColor: "divider",
-        zIndex: (theme) => theme.zIndex.drawer + 1,
       }}
     >
       <Toolbar sx={{ gap: 2 }}>

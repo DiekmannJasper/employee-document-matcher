@@ -1,5 +1,6 @@
-import { Box, Toolbar, useTheme } from "@mui/material";
+import { Box } from "@mui/material";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import { useTheme } from "@mui/material/styles";
 import { useState, type PropsWithChildren } from "react";
 import { AppFooter } from "../AppFooter/AppFooter";
 import { AppTopBar } from "../AppTopBar/AppTopBar";
@@ -15,16 +16,10 @@ export function AppShell({ children }: PropsWithChildren) {
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
 
   const desktopDrawerWidth = desktopNavExpanded ? DRAWER_WIDTH : MINI_DRAWER_WIDTH;
-  const mainOffsetLeft = isDesktop ? desktopDrawerWidth : 0;
 
   return (
     <SearchProvider>
-      <Box sx={{ display: "flex" }}>
-        <AppTopBar
-          mobileNavOpen={mobileNavOpen}
-          onToggleMobileNavigation={() => setMobileNavOpen((open) => !open)}
-          onUploadClick={() => setUploadDialogOpen(true)}
-        />
+      <Box sx={{ display: "flex", height: "100vh", overflow: "hidden" }}>
         <NavigationDrawer
           variant={isDesktop ? "permanent" : "temporary"}
           open={isDesktop || mobileNavOpen}
@@ -33,20 +28,17 @@ export function AppShell({ children }: PropsWithChildren) {
           onClose={() => setMobileNavOpen(false)}
           onToggle={() => setDesktopNavExpanded((expanded) => !expanded)}
         />
-        <Box
-          component="main"
-          sx={{
-            flexGrow: 1,
-            minWidth: 0,
-            ml: { md: `${mainOffsetLeft}px` },
-            pb: 8,
-            transition: theme.transitions.create("margin-left"),
-          }}
-        >
-          <Toolbar />
-          {children}
+        <Box sx={{ display: "flex", flexDirection: "column", flexGrow: 1, minWidth: 0, height: "100vh" }}>
+          <AppTopBar
+            mobileNavOpen={mobileNavOpen}
+            onToggleMobileNavigation={() => setMobileNavOpen((open) => !open)}
+            onUploadClick={() => setUploadDialogOpen(true)}
+          />
+          <Box component="main" sx={{ flexGrow: 1, minHeight: 0, overflowY: "auto" }}>
+            {children}
+          </Box>
+          <AppFooter />
         </Box>
-        <AppFooter offsetLeft={mainOffsetLeft} />
       </Box>
       <UploadDialog open={uploadDialogOpen} onClose={() => setUploadDialogOpen(false)} />
     </SearchProvider>

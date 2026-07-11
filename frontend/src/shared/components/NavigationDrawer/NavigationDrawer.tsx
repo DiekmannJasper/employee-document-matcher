@@ -3,6 +3,7 @@ import ChevronRight from "@mui/icons-material/ChevronRight";
 import { Box, Drawer, IconButton, Toolbar } from "@mui/material";
 import { NavigationList } from "../NavigationList/NavigationList";
 import { navItems } from "../../navigation/navItems";
+import { FOOTER_HEIGHT } from "../../layout/dimensions";
 
 export const DRAWER_WIDTH = 240;
 export const MINI_DRAWER_WIDTH = 72;
@@ -48,11 +49,14 @@ export function NavigationDrawer({ variant, open, width, collapsed, onClose, onT
         {variant === "permanent" && (
           <Box
             sx={{
+              height: FOOTER_HEIGHT,
+              flexShrink: 0,
               display: "flex",
+              alignItems: "center",
               justifyContent: collapsed ? "center" : "flex-end",
               borderTop: 1,
               borderColor: "divider",
-              p: 1,
+              px: 1,
             }}
           >
             <IconButton
