@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { AppProviders } from "../../../app/providers/AppProviders";
 import { AppShell } from "./AppShell";
 
@@ -12,19 +12,6 @@ function renderAppShell() {
       </AppShell>
     </AppProviders>,
   );
-}
-
-function mockDesktopViewport() {
-  window.matchMedia = (query: string) => ({
-    matches: query.includes("min-width"),
-    media: query,
-    onchange: null,
-    addListener: () => {},
-    removeListener: () => {},
-    addEventListener: () => {},
-    removeEventListener: () => {},
-    dispatchEvent: () => false,
-  });
 }
 
 describe("AppShell", () => {
@@ -68,24 +55,5 @@ describe("AppShell", () => {
     renderAppShell();
 
     expect(screen.getByRole("button", { name: "Zurück" })).toBeEnabled();
-  });
-
-  describe("on desktop", () => {
-    const originalMatchMedia = window.matchMedia;
-
-    beforeEach(mockDesktopViewport);
-
-    afterEach(() => {
-      window.matchMedia = originalMatchMedia;
-    });
-
-    it("collapses the drawer to a mini rail via the in-drawer toggle", async () => {
-      const user = userEvent.setup();
-      renderAppShell();
-
-      await user.click(screen.getByRole("button", { name: "Navigation verkleinern" }));
-
-      expect(screen.getByRole("button", { name: "Navigation vergrößern" })).toBeInTheDocument();
-    });
   });
 });

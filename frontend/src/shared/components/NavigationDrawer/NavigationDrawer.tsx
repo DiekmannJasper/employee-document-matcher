@@ -1,22 +1,16 @@
-import ChevronLeft from "@mui/icons-material/ChevronLeft";
-import ChevronRight from "@mui/icons-material/ChevronRight";
-import { Box, Drawer, IconButton, Toolbar } from "@mui/material";
+import { Box, Drawer, Toolbar } from "@mui/material";
 import { NavigationList } from "../NavigationList/NavigationList";
 import { navItems } from "../../navigation/navItems";
 
 export const DRAWER_WIDTH = 240;
-export const MINI_DRAWER_WIDTH = 72;
 
 interface NavigationDrawerProps {
   readonly variant: "permanent" | "temporary";
   readonly open: boolean;
-  readonly width: number;
-  readonly collapsed: boolean;
   readonly onClose: () => void;
-  readonly onToggle: () => void;
 }
 
-export function NavigationDrawer({ variant, open, width, collapsed, onClose, onToggle }: NavigationDrawerProps) {
+export function NavigationDrawer({ variant, open, onClose }: NavigationDrawerProps) {
   return (
     <Drawer
       variant={variant}
@@ -24,38 +18,14 @@ export function NavigationDrawer({ variant, open, width, collapsed, onClose, onT
       onClose={onClose}
       ModalProps={{ keepMounted: true }}
       sx={{
-        width,
+        width: DRAWER_WIDTH,
         flexShrink: 0,
-        whiteSpace: "nowrap",
-        transition: (theme) => theme.transitions.create("width"),
-        "& .MuiDrawer-paper": {
-          width,
-          boxSizing: "border-box",
-          overflowX: "hidden",
-          transition: (theme) => theme.transitions.create("width"),
-        },
+        "& .MuiDrawer-paper": { width: DRAWER_WIDTH, boxSizing: "border-box" },
       }}
     >
-      <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
-        {variant === "permanent" ? (
-          <Toolbar sx={{ justifyContent: collapsed ? "center" : "flex-end", px: collapsed ? 1 : 2 }}>
-            <IconButton
-              onClick={onToggle}
-              aria-label={collapsed ? "Navigation vergrößern" : "Navigation verkleinern"}
-            >
-              {collapsed ? <ChevronRight /> : <ChevronLeft />}
-            </IconButton>
-          </Toolbar>
-        ) : (
-          <Toolbar />
-        )}
-        <Box role="navigation" aria-label="Hauptnavigation" sx={{ flexGrow: 1, overflowY: "auto" }}>
-          <NavigationList
-            items={navItems}
-            collapsed={collapsed}
-            onNavigate={variant === "temporary" ? onClose : undefined}
-          />
-        </Box>
+      <Toolbar />
+      <Box role="navigation" aria-label="Hauptnavigation">
+        <NavigationList items={navItems} onNavigate={variant === "temporary" ? onClose : undefined} />
       </Box>
     </Drawer>
   );
