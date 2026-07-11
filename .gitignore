@@ -29,6 +29,7 @@ frontend/vite.config.d.ts
 data/
 uploads/
 *.pdf
+!docs/demo-pdfs/*.pdf
 
 # Local challenge analysis artifacts
 coding-challenge.pdf

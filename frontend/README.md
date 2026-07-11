@@ -18,4 +18,6 @@ npm test
 npm run build
 ```
 
-Material UI and Tailwind CSS are added separately in GitHub Issue #5.
+Material UI provides the component library; Tailwind CSS handles layout and local
+composition. See [ADR 0001](../docs/adr/0001-application-architecture.md) for the
+styling boundary between the two.

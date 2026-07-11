@@ -49,9 +49,58 @@ trade-offs.
 backend/        Spring Boot application
 frontend/       React application
 docs/           Architecture and project documentation
+docs/demo-pdfs/ Synthetic PDFs for demoing match, no-match and ambiguous cases
 ```
 
-Setup and run instructions will be added as the applications are initialized.
+## Quick start
+
+Requires JDK 21, Maven 3.9+, Node.js 22+, and Docker Desktop.
+
+```bash
+# 1. Database
+docker compose up -d postgres
+
+# 2. Backend (new terminal, from backend/)
+mvn spring-boot:run
+
+# 3. Frontend (new terminal, from frontend/)
+npm install
+npm run dev
+```
+
+Open http://localhost:5173. The ten synthetic employees are seeded by Flyway on
+first backend start. See [backend/README.md](backend/README.md) and
+[frontend/README.md](frontend/README.md) for test commands and configuration
+details (`.env.example` lists the overridable environment variables).
+
+## Demo
+
+[`docs/demo-pdfs/`](docs/demo-pdfs/) contains three synthetic PDFs covering the
+matcher's three outcomes — upload each through the "PDF hochladen" button and
+then confirm or correct the result on the "Prüffälle" page:
+
+| File | Expected outcome |
+| --- | --- |
+| `match-anna-mueller.pdf` | `MATCHED` — contains exactly one employee's full name (Anna Müller) |
+| `no-match-generic-letter.pdf` | `NO_MATCH` — contains no employee name |
+| `ambiguous-two-names.pdf` | `AMBIGUOUS` — contains two employee names (David Schneider, Laura Hoffmann) |
+
+## Assumptions and limitations
+
+- The employee list is fixed to the ten synthetic, seeded records; there is no
+  employee management UI.
+- Matching only works on text-based PDFs. Scanned/image-only PDFs are read as
+  empty text and reported as `NO_MATCH`, since OCR is out of scope for the MVP.
+- Exactly one PDF per upload; no bulk/multi-file upload.
+- The document category set is fixed and seeded. The `DocumentClassifier` port
+  and its rule-based mock (#20) exist and are unit-tested, but are not yet
+  called during upload or exposed through an endpoint — surfacing and
+  confirming category suggestions in the UI is backlog issue #23.
+- No authentication/authorization — this is a local, single-user demo.
+- The rule-based classifier (#20) is a deliberately simple keyword matcher, not
+  a real LLM call, since no API key is available in this environment; it is
+  isolated behind a provider-independent port so a real adapter (#22, backlog)
+  can be added later without touching callers.
 
 ## Data and AI policy
 
@@ -62,6 +111,24 @@ Setup and run instructions will be added as the applications are initialized.
   assign a document without user confirmation.
 - Model confidence is not presented as a calibrated probability. A separate,
   explainable system score combines deterministic signals where appropriate.
+
+## AI-assisted development
+
+This project was built with AI assistance, used transparently and reviewed at
+every step:
+
+- **Planning:** an initial ticket/issue breakdown was drafted with OpenAI Codex
+  from the challenge brief, then reviewed and re-scoped by hand (trimmed to a
+  deterministic must-path first, LLM-classification work reduced to a
+  provider-independent port with a rule-based mock since no API key was
+  available).
+- **Implementation:** Claude Code implemented the GitHub issues iteratively —
+  one focused change at a time, with tests run and, where practical, the change
+  verified live against the running dev servers before moving to the next
+  issue.
+- Every architectural and implementation decision in this repository can be
+  explained and justified in conversation; nothing here is unattended
+  generated code the author cannot account for.
 
 ## Delivery workflow
 
