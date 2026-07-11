@@ -57,6 +57,19 @@ describe("AppShell", () => {
     expect(screen.getByRole("dialog", { name: "PDF hochladen" })).toBeInTheDocument();
   });
 
+  it("shows a footer with the back button disabled on the dashboard", () => {
+    renderAppShell();
+
+    expect(screen.getByRole("button", { name: "Zurück" })).toBeDisabled();
+  });
+
+  it("enables the back button away from the dashboard", () => {
+    window.history.pushState({}, "", "/employees/10000000-0000-0000-0000-000000000001");
+    renderAppShell();
+
+    expect(screen.getByRole("button", { name: "Zurück" })).toBeEnabled();
+  });
+
   describe("on desktop", () => {
     const originalMatchMedia = window.matchMedia;
 
@@ -73,19 +86,6 @@ describe("AppShell", () => {
       await user.click(screen.getByRole("button", { name: "Navigation verkleinern" }));
 
       expect(screen.getByRole("button", { name: "Navigation vergrößern" })).toBeInTheDocument();
-    });
-
-    it("shows a back button at the top of the navigation, disabled on the dashboard", () => {
-      renderAppShell();
-
-      expect(screen.getByRole("button", { name: "Zurück" })).toBeDisabled();
-    });
-
-    it("enables the back button away from the dashboard", () => {
-      window.history.pushState({}, "", "/employees/10000000-0000-0000-0000-000000000001");
-      renderAppShell();
-
-      expect(screen.getByRole("button", { name: "Zurück" })).toBeEnabled();
     });
   });
 });

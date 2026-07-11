@@ -1,8 +1,6 @@
-import ArrowBack from "@mui/icons-material/ArrowBack";
 import ChevronLeft from "@mui/icons-material/ChevronLeft";
 import ChevronRight from "@mui/icons-material/ChevronRight";
 import { Box, Drawer, IconButton, Toolbar } from "@mui/material";
-import { useLocation, useNavigate } from "react-router-dom";
 import { NavigationList } from "../NavigationList/NavigationList";
 import { navItems } from "../../navigation/navItems";
 
@@ -19,10 +17,6 @@ interface NavigationDrawerProps {
 }
 
 export function NavigationDrawer({ variant, open, width, collapsed, onClose, onToggle }: NavigationDrawerProps) {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const canGoBack = location.pathname !== "/";
-
   return (
     <Drawer
       variant={variant}
@@ -43,11 +37,18 @@ export function NavigationDrawer({ variant, open, width, collapsed, onClose, onT
       }}
     >
       <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
-        <Toolbar sx={{ justifyContent: collapsed ? "center" : "flex-start", px: collapsed ? 1 : 2 }}>
-          <IconButton color="inherit" aria-label="Zurück" disabled={!canGoBack} onClick={() => navigate(-1)}>
-            <ArrowBack />
-          </IconButton>
-        </Toolbar>
+        {variant === "permanent" ? (
+          <Toolbar sx={{ justifyContent: collapsed ? "center" : "flex-end", px: collapsed ? 1 : 2 }}>
+            <IconButton
+              onClick={onToggle}
+              aria-label={collapsed ? "Navigation vergrößern" : "Navigation verkleinern"}
+            >
+              {collapsed ? <ChevronRight /> : <ChevronLeft />}
+            </IconButton>
+          </Toolbar>
+        ) : (
+          <Toolbar />
+        )}
         <Box role="navigation" aria-label="Hauptnavigation" sx={{ flexGrow: 1, overflowY: "auto" }}>
           <NavigationList
             items={navItems}
@@ -55,25 +56,6 @@ export function NavigationDrawer({ variant, open, width, collapsed, onClose, onT
             onNavigate={variant === "temporary" ? onClose : undefined}
           />
         </Box>
-        {variant === "permanent" && (
-          <Box
-            sx={{
-              flexShrink: 0,
-              display: "flex",
-              justifyContent: collapsed ? "center" : "flex-end",
-              borderTop: 1,
-              borderColor: "divider",
-              p: 1,
-            }}
-          >
-            <IconButton
-              onClick={onToggle}
-              aria-label={collapsed ? "Navigation vergrößern" : "Navigation verkleinern"}
-            >
-              {collapsed ? <ChevronRight /> : <ChevronLeft />}
-            </IconButton>
-          </Box>
-        )}
       </Box>
     </Drawer>
   );
