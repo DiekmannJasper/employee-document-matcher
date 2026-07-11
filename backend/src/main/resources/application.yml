@@ -1,6 +1,10 @@
 spring:
   application:
     name: employee-document-matcher
+  servlet:
+    multipart:
+      max-file-size: ${UPLOAD_MAX_FILE_SIZE:10MB}
+      max-request-size: ${UPLOAD_MAX_FILE_SIZE:10MB}
   datasource:
     url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/document_matcher}
     username: ${DATABASE_USERNAME:document_matcher}
