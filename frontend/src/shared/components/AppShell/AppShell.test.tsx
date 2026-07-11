@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { AppProviders } from "../../../app/providers/AppProviders";
 import { AppShell } from "./AppShell";
 
@@ -15,10 +15,6 @@ function renderAppShell() {
 }
 
 describe("AppShell", () => {
-  beforeEach(() => {
-    window.history.pushState({}, "", "/");
-  });
-
   it("renders the app title and page content", () => {
     renderAppShell();
 
@@ -26,12 +22,14 @@ describe("AppShell", () => {
     expect(screen.getByText("page content")).toBeInTheDocument();
   });
 
-  it("toggles navigation from the menu button", async () => {
+  it("toggles navigation from the topbar arrow button", async () => {
     const user = userEvent.setup();
     renderAppShell();
 
-    await user.click(screen.getByRole("button", { name: "Navigation umschalten" }));
+    await user.click(screen.getByRole("button", { name: "Navigation vergrößern" }));
 
+    // The open mobile drawer is a modal; MUI marks the rest of the app aria-hidden
+    // while it's open, so the toggle button itself is intentionally not queried here.
     expect(screen.getByRole("link", { name: "Mitarbeiter" })).toBeInTheDocument();
   });
 
@@ -44,25 +42,9 @@ describe("AppShell", () => {
     expect(screen.getByRole("dialog", { name: "PDF hochladen" })).toBeInTheDocument();
   });
 
-  it("does not show a footer or back button on the dashboard", () => {
+  it("always shows a fixed footer with a back button", () => {
     renderAppShell();
 
-    expect(screen.queryByRole("button", { name: "Zurück" })).not.toBeInTheDocument();
-  });
-
-  describe("on a non-root route", () => {
-    beforeEach(() => {
-      window.history.pushState({}, "", "/employees/10000000-0000-0000-0000-000000000001");
-    });
-
-    it("shows a fixed footer with a back button", () => {
-      renderAppShell();
-
-      expect(screen.getByRole("button", { name: "Zurück" })).toBeInTheDocument();
-    });
-  });
-
-  afterEach(() => {
-    window.history.pushState({}, "", "/");
+    expect(screen.getByRole("button", { name: "Zurück" })).toBeInTheDocument();
   });
 });
