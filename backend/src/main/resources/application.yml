@@ -23,6 +23,8 @@ spring:
 app:
   storage:
     local-path: ${STORAGE_LOCAL_PATH:./data/documents}
+  classification:
+    mode: ${CLASSIFICATION_MODE:RULE_BASED}
 
 management:
   endpoints:
