@@ -19,6 +19,7 @@ export function AppTopBar({ mobileNavOpen, onToggleMobileNavigation, onUploadCli
         flexShrink: 0,
         borderBottom: 1,
         borderColor: "divider",
+        backgroundColor: "background.paper",
       }}
     >
       <Toolbar sx={{ gap: 2 }}>
