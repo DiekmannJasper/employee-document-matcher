@@ -10,7 +10,16 @@ interface AppTopBarProps {
 
 export function AppTopBar({ onMenuClick, onUploadClick }: AppTopBarProps) {
   return (
-    <AppBar position="fixed" color="default" elevation={0} sx={{ borderBottom: 1, borderColor: "divider" }}>
+    <AppBar
+      position="fixed"
+      color="default"
+      elevation={0}
+      sx={{
+        borderBottom: 1,
+        borderColor: "divider",
+        zIndex: (theme) => theme.zIndex.drawer + 1,
+      }}
+    >
       <Toolbar sx={{ gap: 2 }}>
         <IconButton color="inherit" aria-label="Navigation umschalten" onClick={onMenuClick}>
           <MenuIcon />
