@@ -1,9 +1,10 @@
+import ArrowBack from "@mui/icons-material/ArrowBack";
 import ChevronLeft from "@mui/icons-material/ChevronLeft";
 import ChevronRight from "@mui/icons-material/ChevronRight";
 import { Box, Drawer, IconButton, Toolbar } from "@mui/material";
+import { useLocation, useNavigate } from "react-router-dom";
 import { NavigationList } from "../NavigationList/NavigationList";
 import { navItems } from "../../navigation/navItems";
-import { FOOTER_HEIGHT } from "../../layout/dimensions";
 
 export const DRAWER_WIDTH = 240;
 export const MINI_DRAWER_WIDTH = 72;
@@ -18,6 +19,10 @@ interface NavigationDrawerProps {
 }
 
 export function NavigationDrawer({ variant, open, width, collapsed, onClose, onToggle }: NavigationDrawerProps) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const canGoBack = location.pathname !== "/";
+
   return (
     <Drawer
       variant={variant}
@@ -38,7 +43,11 @@ export function NavigationDrawer({ variant, open, width, collapsed, onClose, onT
       }}
     >
       <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
-        <Toolbar />
+        <Toolbar sx={{ justifyContent: collapsed ? "center" : "flex-start", px: collapsed ? 1 : 2 }}>
+          <IconButton color="inherit" aria-label="Zurück" disabled={!canGoBack} onClick={() => navigate(-1)}>
+            <ArrowBack />
+          </IconButton>
+        </Toolbar>
         <Box role="navigation" aria-label="Hauptnavigation" sx={{ flexGrow: 1, overflowY: "auto" }}>
           <NavigationList
             items={navItems}
@@ -49,14 +58,12 @@ export function NavigationDrawer({ variant, open, width, collapsed, onClose, onT
         {variant === "permanent" && (
           <Box
             sx={{
-              height: FOOTER_HEIGHT,
               flexShrink: 0,
               display: "flex",
-              alignItems: "center",
               justifyContent: collapsed ? "center" : "flex-end",
               borderTop: 1,
               borderColor: "divider",
-              px: 1,
+              p: 1,
             }}
           >
             <IconButton
