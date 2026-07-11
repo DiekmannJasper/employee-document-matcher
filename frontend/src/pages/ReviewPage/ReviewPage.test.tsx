@@ -92,9 +92,10 @@ describe("ReviewPage", () => {
           matchStatus: "MATCHED",
           suggestedEmployeeId: EMPLOYEE.id,
           evidence: "Name im Dokument gefunden: 'Anna Müller'",
+          systemScore: "HIGH",
           suggestedCategoryId: CATEGORY.id,
           suggestedCategoryName: null,
-          categoryConfidence: 0.9,
+          llmConfidence: "HIGH",
           uploadedAt: "2026-01-15T10:00:00Z",
         },
       ],
@@ -108,6 +109,8 @@ describe("ReviewPage", () => {
 
     expect(screen.getByText("vertrag.pdf")).toBeInTheDocument();
     expect(screen.getByText("Eindeutiger Treffer")).toBeInTheDocument();
+    expect(screen.getByText("System-Score: Hoch")).toBeInTheDocument();
+    expect(screen.getByText("KI-Konfidenz: Hoch")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Bestätigen" }));
 
@@ -132,9 +135,10 @@ describe("ReviewPage", () => {
           matchStatus: "NO_MATCH",
           suggestedEmployeeId: null,
           evidence: "Schlüsselwort erkannt: 'kündigung'",
+          systemScore: "NONE",
           suggestedCategoryId: null,
           suggestedCategoryName: "Kündigungen",
-          categoryConfidence: 0.6,
+          llmConfidence: "MEDIUM",
           uploadedAt: "2026-01-15T10:00:00Z",
         },
       ],
@@ -148,6 +152,8 @@ describe("ReviewPage", () => {
 
     expect(screen.getByText('Vorschlag für neue Kategorie: "Kündigungen"')).toBeInTheDocument();
     expect(screen.getByDisplayValue("Kündigungen")).toBeInTheDocument();
+    expect(screen.getByText("System-Score: Kein Signal")).toBeInTheDocument();
+    expect(screen.getByText("KI-Konfidenz: Mittel")).toBeInTheDocument();
 
     await user.click(screen.getByRole("combobox", { name: "Mitarbeiter auswählen" }));
     await user.click(await screen.findByRole("option", { name: /Anna Müller/ }));
@@ -172,9 +178,10 @@ describe("ReviewPage", () => {
           matchStatus: "NO_MATCH",
           suggestedEmployeeId: null,
           evidence: "Kein Mitarbeitername im Dokument gefunden.",
+          systemScore: "NONE",
           suggestedCategoryId: null,
           suggestedCategoryName: null,
-          categoryConfidence: null,
+          llmConfidence: "NONE",
           uploadedAt: "2026-01-15T10:00:00Z",
         },
       ],

@@ -3,15 +3,18 @@ import type { DocumentSummary } from "../../employee-documents/api/employeeDocum
 
 export type MatchStatus = "MATCHED" | "NO_MATCH" | "AMBIGUOUS";
 
+export type ConfidenceLevel = "HIGH" | "MEDIUM" | "LOW" | "NONE";
+
 export interface PendingReview {
   readonly documentId: string;
   readonly originalFilename: string;
   readonly matchStatus: MatchStatus;
   readonly suggestedEmployeeId: string | null;
   readonly evidence: string;
+  readonly systemScore: ConfidenceLevel;
   readonly suggestedCategoryId: string | null;
   readonly suggestedCategoryName: string | null;
-  readonly categoryConfidence: number | null;
+  readonly llmConfidence: ConfidenceLevel;
   readonly uploadedAt: string;
 }
 

@@ -25,6 +25,9 @@ app:
     local-path: ${STORAGE_LOCAL_PATH:./data/documents}
   classification:
     mode: ${CLASSIFICATION_MODE:RULE_BASED}
+  confidence:
+    high-threshold: ${CONFIDENCE_HIGH_THRESHOLD:0.80}
+    medium-threshold: ${CONFIDENCE_MEDIUM_THRESHOLD:0.40}
 
 management:
   endpoints:

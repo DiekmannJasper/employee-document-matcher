@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 class DocumentAnalysisService {
 
     private static final BigDecimal DETERMINISTIC_MATCH_SCORE = new BigDecimal("1.0000");
+    private static final BigDecimal AMBIGUOUS_MATCH_SCORE = new BigDecimal("0.5000");
 
     private final PdfTextExtractor pdfTextExtractor;
     private final PersonMatcher personMatcher;
@@ -54,7 +55,12 @@ class DocumentAnalysisService {
     private DocumentAnalysis analyzeReadableDocument(UUID documentId, String text) {
         var matchResult = matchPerson(text);
         var classification = classifyCategory(text);
-        var score = matchResult.status() == MatchStatus.MATCHED ? DETERMINISTIC_MATCH_SCORE : null;
+        var score =
+                switch (matchResult.status()) {
+                    case MATCHED -> DETERMINISTIC_MATCH_SCORE;
+                    case AMBIGUOUS -> AMBIGUOUS_MATCH_SCORE;
+                    case NO_MATCH -> null;
+                };
 
         return new DocumentAnalysis(
                 UUID.randomUUID(),

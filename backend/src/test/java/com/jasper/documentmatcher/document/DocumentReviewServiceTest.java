@@ -11,9 +11,12 @@ import com.jasper.documentmatcher.category.CategoryNotFoundException;
 import com.jasper.documentmatcher.category.CategoryOrigin;
 import com.jasper.documentmatcher.category.DocumentCategoryResponse;
 import com.jasper.documentmatcher.category.DocumentCategoryService;
+import com.jasper.documentmatcher.confidence.ConfidenceBandCalculator;
+import com.jasper.documentmatcher.confidence.ConfidenceLevel;
 import com.jasper.documentmatcher.employee.EmployeeNotFoundException;
 import com.jasper.documentmatcher.employee.EmployeeResponse;
 import com.jasper.documentmatcher.employee.EmployeeService;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -31,8 +34,12 @@ class DocumentReviewServiceTest {
     @Mock private DocumentRepository documentRepository;
     @Mock private DocumentAnalysisRepository documentAnalysisRepository;
 
+    private final ConfidenceBandCalculator confidenceBandCalculator =
+            new ConfidenceBandCalculator(new BigDecimal("0.80"), new BigDecimal("0.40"));
+
     private DocumentReviewService service() {
-        return new DocumentReviewService(employeeService, documentCategoryService, documentRepository, documentAnalysisRepository);
+        return new DocumentReviewService(
+                employeeService, documentCategoryService, confidenceBandCalculator, documentRepository, documentAnalysisRepository);
     }
 
     private DocumentAnalysis pendingAnalysis(UUID documentId, UUID matchedEmployeeId, String suggestedCategoryName) {
@@ -74,6 +81,33 @@ class DocumentReviewServiceTest {
         assertThat(result).hasSize(1);
         assertThat(result.get(0).originalFilename()).isEqualTo("vertrag.pdf");
         assertThat(result.get(0).matchStatus()).isEqualTo(MatchStatus.NO_MATCH);
+        assertThat(result.get(0).systemScore()).isEqualTo(ConfidenceLevel.NONE);
+        assertThat(result.get(0).llmConfidence()).isEqualTo(ConfidenceLevel.NONE);
+    }
+
+    @Test
+    void bandsMatchAndCategoryScoresSeparately() {
+        var document = new Document(
+                UUID.randomUUID(), null, "vertrag.pdf", "storage-key", DocumentStatus.UPLOADED, Instant.now());
+        var analysis = new DocumentAnalysis(
+                UUID.randomUUID(),
+                document.getId(),
+                MatchStatus.MATCHED,
+                UUID.randomUUID(),
+                new BigDecimal("1.0000"),
+                UUID.randomUUID(),
+                null,
+                new BigDecimal("0.6000"),
+                "Name im Dokument gefunden",
+                ReviewStatus.PENDING,
+                Instant.now());
+        when(documentAnalysisRepository.findByReviewStatus(ReviewStatus.PENDING)).thenReturn(List.of(analysis));
+        when(documentRepository.findById(document.getId())).thenReturn(Optional.of(document));
+
+        var result = service().findPendingReviews();
+
+        assertThat(result.get(0).systemScore()).isEqualTo(ConfidenceLevel.HIGH);
+        assertThat(result.get(0).llmConfidence()).isEqualTo(ConfidenceLevel.MEDIUM);
     }
 
     @Test

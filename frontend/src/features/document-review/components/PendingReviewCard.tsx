@@ -6,6 +6,7 @@ import type { Employee } from "../../employees/api/employeeApi";
 import type { PendingReview } from "../api/documentReviewApi";
 import { useConfirmMatch } from "../hooks/useConfirmMatch";
 import { CategoryPicker, type CategorySelection } from "./CategoryPicker";
+import { ConfidenceChip } from "./ConfidenceChip";
 import { EmployeePicker } from "./EmployeePicker";
 import { MatchStatusChip } from "./MatchStatusChip";
 
@@ -48,6 +49,10 @@ export function PendingReviewCard({ review, employees, categories }: PendingRevi
           <Typography variant="body2" color="text.secondary">
             {review.evidence}
           </Typography>
+          <Stack direction="row" spacing={1}>
+            <ConfidenceChip label="System-Score" level={review.systemScore} />
+            <ConfidenceChip label="KI-Konfidenz" level={review.llmConfidence} />
+          </Stack>
           <EmployeePicker
             employees={employees}
             selectedEmployeeId={selectedEmployeeId}

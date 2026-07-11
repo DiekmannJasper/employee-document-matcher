@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jasper.documentmatcher.common.GlobalExceptionHandler;
+import com.jasper.documentmatcher.confidence.ConfidenceLevel;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -34,7 +35,16 @@ class DocumentReviewControllerTest {
     @Test
     void listsPendingReviews() throws Exception {
         var response = new PendingReviewResponse(
-                UUID.randomUUID(), "vertrag.pdf", MatchStatus.NO_MATCH, null, "Kein Treffer", null, null, null, Instant.now());
+                UUID.randomUUID(),
+                "vertrag.pdf",
+                MatchStatus.NO_MATCH,
+                null,
+                "Kein Treffer",
+                ConfidenceLevel.NONE,
+                null,
+                null,
+                ConfidenceLevel.NONE,
+                Instant.now());
         when(documentReviewService.findPendingReviews()).thenReturn(List.of(response));
 
         mockMvc.perform(get("/api/documents/pending-review"))

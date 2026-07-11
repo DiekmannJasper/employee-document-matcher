@@ -2,6 +2,7 @@ package com.jasper.documentmatcher.document;
 
 import com.jasper.documentmatcher.category.CategoryOrigin;
 import com.jasper.documentmatcher.category.DocumentCategoryService;
+import com.jasper.documentmatcher.confidence.ConfidenceBandCalculator;
 import com.jasper.documentmatcher.employee.EmployeeService;
 import java.util.List;
 import java.util.Locale;
@@ -15,16 +16,19 @@ class DocumentReviewService {
 
     private final EmployeeService employeeService;
     private final DocumentCategoryService documentCategoryService;
+    private final ConfidenceBandCalculator confidenceBandCalculator;
     private final DocumentRepository documentRepository;
     private final DocumentAnalysisRepository documentAnalysisRepository;
 
     DocumentReviewService(
             EmployeeService employeeService,
             DocumentCategoryService documentCategoryService,
+            ConfidenceBandCalculator confidenceBandCalculator,
             DocumentRepository documentRepository,
             DocumentAnalysisRepository documentAnalysisRepository) {
         this.employeeService = employeeService;
         this.documentCategoryService = documentCategoryService;
+        this.confidenceBandCalculator = confidenceBandCalculator;
         this.documentRepository = documentRepository;
         this.documentAnalysisRepository = documentAnalysisRepository;
     }
@@ -35,7 +39,8 @@ class DocumentReviewService {
                         documentRepository
                                 .findById(analysis.getDocumentId())
                                 .orElseThrow(() -> new DocumentNotFoundException(analysis.getDocumentId())),
-                        analysis))
+                        analysis,
+                        confidenceBandCalculator))
                 .toList();
     }
 
