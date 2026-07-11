@@ -1,5 +1,8 @@
 package com.jasper.documentmatcher.common;
 
+import com.jasper.documentmatcher.document.DocumentAlreadyReviewedException;
+import com.jasper.documentmatcher.document.DocumentNotFoundException;
+import com.jasper.documentmatcher.document.InvalidReviewRequestException;
 import com.jasper.documentmatcher.document.InvalidUploadException;
 import com.jasper.documentmatcher.employee.EmployeeNotFoundException;
 import org.springframework.http.HttpStatus;
@@ -15,6 +18,21 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(EmployeeNotFoundException.class)
     public ProblemDetail handleEmployeeNotFound(EmployeeNotFoundException exception) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, exception.getMessage());
+    }
+
+    @ExceptionHandler(DocumentNotFoundException.class)
+    public ProblemDetail handleDocumentNotFound(DocumentNotFoundException exception) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, exception.getMessage());
+    }
+
+    @ExceptionHandler(DocumentAlreadyReviewedException.class)
+    public ProblemDetail handleDocumentAlreadyReviewed(DocumentAlreadyReviewedException exception) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, exception.getMessage());
+    }
+
+    @ExceptionHandler(InvalidReviewRequestException.class)
+    public ProblemDetail handleInvalidReviewRequest(InvalidReviewRequestException exception) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)

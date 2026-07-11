@@ -111,4 +111,8 @@ public class DocumentAnalysis {
     public Instant getAnalyzedAt() {
         return analyzedAt;
     }
+
+    void confirm() {
+        this.reviewStatus = ReviewStatus.CONFIRMED;
+    }
 }

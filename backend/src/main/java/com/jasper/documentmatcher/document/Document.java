@@ -73,4 +73,9 @@ public class Document {
     public Instant getUploadedAt() {
         return uploadedAt;
     }
+
+    void assignToEmployee(UUID employeeId) {
+        this.employeeId = employeeId;
+        this.status = DocumentStatus.ASSIGNED;
+    }
 }

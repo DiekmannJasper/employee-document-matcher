@@ -11,4 +11,6 @@ public interface DocumentAnalysisRepository extends JpaRepository<DocumentAnalys
     Optional<DocumentAnalysis> findByDocumentId(UUID documentId);
 
     List<DocumentAnalysis> findByDocumentIdIn(Collection<UUID> documentIds);
+
+    List<DocumentAnalysis> findByReviewStatus(ReviewStatus reviewStatus);
 }
