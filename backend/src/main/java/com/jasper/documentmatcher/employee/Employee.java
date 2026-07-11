@@ -32,6 +32,21 @@ public class Employee {
     protected Employee() {
     }
 
+    Employee(
+            UUID id,
+            String personnelNumber,
+            String firstName,
+            String lastName,
+            String department,
+            Instant createdAt) {
+        this.id = id;
+        this.personnelNumber = personnelNumber;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.department = department;
+        this.createdAt = createdAt;
+    }
+
     public UUID getId() {
         return id;
     }
