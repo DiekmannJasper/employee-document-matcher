@@ -56,6 +56,21 @@ class RuleBasedDocumentClassifierTest {
     }
 
     @Test
+    void doesNotMatchKeywordsEmbeddedInLongerWords() {
+        var result = classifier.classify(
+                "Die Kollegen vertragen sich gut und die Kündigungsfrist wurde besprochen.", SEEDED_CATEGORIES);
+
+        assertThat(result.action()).isEqualTo(ClassificationAction.MANUAL_REVIEW);
+    }
+
+    @Test
+    void stillMatchesGermanCompoundsEndingInTheKeyword() {
+        var result = classifier.classify("Beiliegend der unterschriebene Mietvertrag.", SEEDED_CATEGORIES);
+
+        assertThat(result.action()).isEqualTo(ClassificationAction.USE_EXISTING);
+    }
+
+    @Test
     void fallsBackToManualReviewWhenMultipleDocumentTypesAreDetected() {
         var result = classifier.classify(
                 "Dieser Arbeitsvertrag enthält auch eine Gehaltsabrechnung im Anhang.", SEEDED_CATEGORIES);
