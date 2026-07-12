@@ -38,6 +38,7 @@ class DocumentAnalysisRepositoryTest extends AbstractPostgresIntegrationTest {
                 CONTRACT_CATEGORY_ID,
                 null,
                 new BigDecimal("0.8500"),
+                "Schlüsselwort erkannt: 'arbeitsvertrag'",
                 "Exakter Namenstreffer: 'Anna Müller'",
                 ReviewStatus.PENDING,
                 Instant.now());
@@ -50,6 +51,37 @@ class DocumentAnalysisRepositoryTest extends AbstractPostgresIntegrationTest {
         assertThat(reloaded.getSuggestedCategoryId()).isEqualTo(CONTRACT_CATEGORY_ID);
         assertThat(reloaded.getReviewStatus()).isEqualTo(ReviewStatus.PENDING);
         assertThat(reloaded.getEvidence()).contains("Anna Müller");
+        assertThat(reloaded.getCategoryEvidence()).contains("arbeitsvertrag");
+    }
+
+    @Test
+    void persistsTheUnreadableStatus() {
+        var document = documentRepository.save(new Document(
+                UUID.randomUUID(),
+                null,
+                "verschluesselt.pdf",
+                UUID.randomUUID().toString(),
+                DocumentStatus.UPLOADED,
+                Instant.now()));
+
+        documentAnalysisRepository.save(new DocumentAnalysis(
+                UUID.randomUUID(),
+                document.getId(),
+                MatchStatus.UNREADABLE,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                "PDF ist passwortgeschützt und konnte nicht analysiert werden.",
+                ReviewStatus.PENDING,
+                Instant.now()));
+
+        var found = documentAnalysisRepository.findByDocumentId(document.getId());
+
+        assertThat(found).isPresent();
+        assertThat(found.get().getMatchStatus()).isEqualTo(MatchStatus.UNREADABLE);
     }
 
     @Test
@@ -66,6 +98,7 @@ class DocumentAnalysisRepositoryTest extends AbstractPostgresIntegrationTest {
                 UUID.randomUUID(),
                 document.getId(),
                 MatchStatus.AMBIGUOUS,
+                null,
                 null,
                 null,
                 null,

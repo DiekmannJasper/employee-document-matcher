@@ -52,6 +52,7 @@ class DocumentReviewServiceTest {
                 null,
                 suggestedCategoryName,
                 null,
+                null,
                 "Name im Dokument gefunden",
                 ReviewStatus.PENDING,
                 Instant.now());
@@ -65,6 +66,7 @@ class DocumentReviewServiceTest {
                 UUID.randomUUID(),
                 document.getId(),
                 MatchStatus.NO_MATCH,
+                null,
                 null,
                 null,
                 null,
@@ -98,6 +100,7 @@ class DocumentReviewServiceTest {
                 UUID.randomUUID(),
                 null,
                 new BigDecimal("0.6000"),
+                "Schlüsselwort erkannt: 'vertrag'",
                 "Name im Dokument gefunden",
                 ReviewStatus.PENDING,
                 Instant.now());
@@ -108,6 +111,7 @@ class DocumentReviewServiceTest {
 
         assertThat(result.get(0).systemScore()).isEqualTo(ConfidenceLevel.HIGH);
         assertThat(result.get(0).llmConfidence()).isEqualTo(ConfidenceLevel.MEDIUM);
+        assertThat(result.get(0).categoryEvidence()).isEqualTo("Schlüsselwort erkannt: 'vertrag'");
     }
 
     @Test
@@ -249,6 +253,7 @@ class DocumentReviewServiceTest {
                 document.getId(),
                 MatchStatus.MATCHED,
                 employeeId,
+                null,
                 null,
                 null,
                 null,

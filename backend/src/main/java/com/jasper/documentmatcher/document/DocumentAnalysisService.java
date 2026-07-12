@@ -59,8 +59,10 @@ class DocumentAnalysisService {
                 switch (matchResult.status()) {
                     case MATCHED -> DETERMINISTIC_MATCH_SCORE;
                     case AMBIGUOUS -> AMBIGUOUS_MATCH_SCORE;
-                    case NO_MATCH -> null;
+                    case NO_MATCH, UNREADABLE -> null;
                 };
+        var categoryEvidence =
+                classification.evidence() != null ? classification.evidence() : classification.reasoning();
 
         return new DocumentAnalysis(
                 UUID.randomUUID(),
@@ -71,6 +73,7 @@ class DocumentAnalysisService {
                 classification.categoryId(),
                 classification.suggestedCategoryName(),
                 classification.confidence(),
+                categoryEvidence,
                 matchResult.evidence(),
                 ReviewStatus.PENDING,
                 Instant.now());
@@ -105,7 +108,8 @@ class DocumentAnalysisService {
         return new DocumentAnalysis(
                 UUID.randomUUID(),
                 documentId,
-                MatchStatus.NO_MATCH,
+                MatchStatus.UNREADABLE,
+                null,
                 null,
                 null,
                 null,

@@ -69,6 +69,7 @@ class DocumentAnalysisServiceTest {
         assertThat(analysis.getReviewStatus()).isEqualTo(ReviewStatus.PENDING);
         assertThat(analysis.getSuggestedCategoryId()).isEqualTo(categoryId);
         assertThat(analysis.getCategoryConfidence()).isEqualByComparingTo(new BigDecimal("0.90"));
+        assertThat(analysis.getCategoryEvidence()).isEqualTo("Schlüsselwort erkannt: 'vertrag'");
     }
 
     @Test
@@ -98,18 +99,19 @@ class DocumentAnalysisServiceTest {
     }
 
     @Test
-    void persistsUnreadableDocumentAsNoMatchWithExplanatoryEvidenceAndSkipsClassification() {
+    void persistsUnreadableDocumentWithExplanatoryEvidenceAndSkipsClassification() {
         var documentId = UUID.randomUUID();
         when(pdfTextExtractor.extract(any())).thenReturn(PdfExtractionResult.of(PdfExtractionStatus.ENCRYPTED));
         when(documentAnalysisRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         var analysis = service().analyze(documentId, new ByteArrayInputStream(new byte[0]));
 
-        assertThat(analysis.getMatchStatus()).isEqualTo(MatchStatus.NO_MATCH);
+        assertThat(analysis.getMatchStatus()).isEqualTo(MatchStatus.UNREADABLE);
         assertThat(analysis.getMatchedEmployeeId()).isNull();
         assertThat(analysis.getEvidence()).contains("passwortgeschützt");
         assertThat(analysis.getReviewStatus()).isEqualTo(ReviewStatus.PENDING);
         assertThat(analysis.getSuggestedCategoryId()).isNull();
         assertThat(analysis.getSuggestedCategoryName()).isNull();
+        assertThat(analysis.getCategoryEvidence()).isNull();
     }
 }

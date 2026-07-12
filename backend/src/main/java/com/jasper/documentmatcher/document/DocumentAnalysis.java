@@ -39,6 +39,9 @@ public class DocumentAnalysis {
     @Column(name = "category_confidence")
     private BigDecimal categoryConfidence;
 
+    @Column(name = "category_evidence")
+    private String categoryEvidence;
+
     @Column
     private String evidence;
 
@@ -61,6 +64,7 @@ public class DocumentAnalysis {
             UUID suggestedCategoryId,
             String suggestedCategoryName,
             BigDecimal categoryConfidence,
+            String categoryEvidence,
             String evidence,
             ReviewStatus reviewStatus,
             Instant analyzedAt) {
@@ -72,6 +76,7 @@ public class DocumentAnalysis {
         this.suggestedCategoryId = suggestedCategoryId;
         this.suggestedCategoryName = suggestedCategoryName;
         this.categoryConfidence = categoryConfidence;
+        this.categoryEvidence = categoryEvidence;
         this.evidence = evidence;
         this.reviewStatus = reviewStatus;
         this.analyzedAt = analyzedAt;
@@ -107,6 +112,10 @@ public class DocumentAnalysis {
 
     public BigDecimal getCategoryConfidence() {
         return categoryConfidence;
+    }
+
+    public String getCategoryEvidence() {
+        return categoryEvidence;
     }
 
     public String getEvidence() {
