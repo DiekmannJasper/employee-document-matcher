@@ -5,12 +5,14 @@ const LABELS: Record<MatchStatus, string> = {
   MATCHED: "Eindeutiger Treffer",
   AMBIGUOUS: "Mehrdeutig",
   NO_MATCH: "Kein Treffer",
+  UNREADABLE: "Nicht lesbar",
 };
 
-const COLORS: Record<MatchStatus, "success" | "warning" | "default"> = {
+const COLORS: Record<MatchStatus, "success" | "warning" | "error" | "default"> = {
   MATCHED: "success",
   AMBIGUOUS: "warning",
   NO_MATCH: "default",
+  UNREADABLE: "error",
 };
 
 interface MatchStatusChipProps {

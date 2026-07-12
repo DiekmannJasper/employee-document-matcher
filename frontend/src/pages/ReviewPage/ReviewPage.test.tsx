@@ -95,6 +95,7 @@ describe("ReviewPage", () => {
           systemScore: "HIGH",
           suggestedCategoryId: CATEGORY.id,
           suggestedCategoryName: null,
+          categoryEvidence: "Schlüsselwort erkannt: 'vertrag'",
           llmConfidence: "HIGH",
           uploadedAt: "2026-01-15T10:00:00Z",
         },
@@ -138,6 +139,7 @@ describe("ReviewPage", () => {
           systemScore: "NONE",
           suggestedCategoryId: null,
           suggestedCategoryName: "Kündigungen",
+          categoryEvidence: "Schlüsselwort erkannt: 'kündigung'",
           llmConfidence: "MEDIUM",
           uploadedAt: "2026-01-15T10:00:00Z",
         },
@@ -152,6 +154,7 @@ describe("ReviewPage", () => {
 
     expect(screen.getByText('Vorschlag für neue Kategorie: "Kündigungen"')).toBeInTheDocument();
     expect(screen.getByDisplayValue("Kündigungen")).toBeInTheDocument();
+    expect(screen.getByText("Kategorie-Begründung: Schlüsselwort erkannt: 'kündigung'")).toBeInTheDocument();
     expect(screen.getByText("System-Score: Kein Signal")).toBeInTheDocument();
     expect(screen.getByText("KI-Konfidenz: Mittel")).toBeInTheDocument();
 
@@ -181,6 +184,7 @@ describe("ReviewPage", () => {
           systemScore: "NONE",
           suggestedCategoryId: null,
           suggestedCategoryName: null,
+          categoryEvidence: null,
           llmConfidence: "NONE",
           uploadedAt: "2026-01-15T10:00:00Z",
         },

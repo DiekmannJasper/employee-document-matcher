@@ -64,6 +64,11 @@ export function PendingReviewCard({ review, employees, categories }: PendingRevi
               Vorschlag für neue Kategorie: "{review.suggestedCategoryName}"
             </Typography>
           )}
+          {review.categoryEvidence && (
+            <Typography variant="body2" color="text.secondary">
+              Kategorie-Begründung: {review.categoryEvidence}
+            </Typography>
+          )}
           <CategoryPicker
             categories={categories}
             selection={categorySelection}
