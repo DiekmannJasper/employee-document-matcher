@@ -89,18 +89,41 @@ then confirm or correct the result on the "Prüffälle" page:
 
 - The employee list is fixed to the ten synthetic, seeded records; there is no
   employee management UI.
-- Matching only works on text-based PDFs. Scanned/image-only PDFs are read as
-  empty text and reported as `NO_MATCH`, since OCR is out of scope for the MVP.
+- Matching only works on text-based PDFs. Scanned/image-only or encrypted PDFs
+  are reported as `UNREADABLE`, since OCR is out of scope for the MVP.
 - Exactly one PDF per upload; no bulk/multi-file upload.
-- The document category set is fixed and seeded. The `DocumentClassifier` port
-  and its rule-based mock (#20) exist and are unit-tested, but are not yet
-  called during upload or exposed through an endpoint — surfacing and
-  confirming category suggestions in the UI is backlog issue #23.
 - No authentication/authorization — this is a local, single-user demo.
 - The rule-based classifier (#20) is a deliberately simple keyword matcher, not
   a real LLM call, since no API key is available in this environment; it is
   isolated behind a provider-independent port so a real adapter (#22, backlog)
-  can be added later without touching callers.
+  can be added later without touching callers. The `llmConfidence` /
+  `LLM_SUGGESTED` naming is forward-looking for that adapter.
+
+### Known limitations (reviewed, deliberately not addressed in the MVP)
+
+These came out of a code review and are conscious trade-offs rather than
+oversights — each would matter in production:
+
+- **Concurrent confirmation race:** two simultaneous confirmations of the same
+  document can both pass the `PENDING` check (no optimistic locking/`@Version`
+  yet); the sequential case is guarded and returns 409.
+- **N+1 query in the pending-review list:** one `findById` per pending
+  analysis. Irrelevant at demo scale, would become a join in production.
+- **Package dependency cycle** between `document` and `matching` via
+  `MatchStatus` (lives in `document`, used by `matching`).
+- **No end-to-end integration test** driving upload → analysis → review →
+  confirm through the real database; coverage is unit + web-slice tests.
+- **`DocumentAnalysis` telescoping constructor** (12 params); a builder was
+  considered over-engineering at this size.
+- **Category creation race:** two concurrent confirmations with the same new
+  category name can both miss the duplicate check; the DB unique constraint on
+  `code` catches most collisions.
+- **DataGrid row navigation is mouse-only**; keyboard users cannot open an
+  employee row.
+- **Tailwind CSS is configured but barely used** (MUI `sx` covers styling);
+  either commit to it or remove it.
+- **`ReviewStatus.REJECTED` is modeled but unreachable** — a reject flow is
+  backlog issue #25.
 
 ## Data and AI policy
 
