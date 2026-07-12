@@ -27,6 +27,8 @@ function isAbortError(error: unknown): boolean {
   return error instanceof DOMException && error.name === "AbortError";
 }
 
+// Holds per-session state (selected file, mutation result). The AppShell remounts
+// it with a fresh key on every open so a reopened dialog always starts empty.
 export function UploadDialog({ open, onClose }: UploadDialogProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);

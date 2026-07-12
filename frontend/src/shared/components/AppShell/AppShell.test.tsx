@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitForElementToBeRemoved } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it } from "vitest";
 import { AppProviders } from "../../../app/providers/AppProviders";
@@ -42,6 +42,23 @@ describe("AppShell", () => {
     await user.click(screen.getByRole("button", { name: "PDF hochladen" }));
 
     expect(screen.getByRole("dialog", { name: "PDF hochladen" })).toBeInTheDocument();
+  });
+
+  it("starts a fresh upload session when the dialog is reopened", async () => {
+    const user = userEvent.setup();
+    renderAppShell();
+
+    await user.click(screen.getByRole("button", { name: "PDF hochladen" }));
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    await user.upload(input, new File(["%PDF-1.4"], "vertrag.pdf", { type: "application/pdf" }));
+    expect(screen.getByText("vertrag.pdf")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Schließen" }));
+    await waitForElementToBeRemoved(() => screen.queryByRole("dialog"));
+    await user.click(screen.getByRole("button", { name: "PDF hochladen" }));
+
+    expect(screen.getByRole("button", { name: "PDF-Datei auswählen oder hierher ziehen" })).toBeInTheDocument();
+    expect(screen.queryByText("vertrag.pdf")).not.toBeInTheDocument();
   });
 
   it("shows a footer with the back button disabled on the dashboard", () => {

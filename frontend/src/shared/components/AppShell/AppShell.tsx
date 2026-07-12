@@ -13,6 +13,14 @@ export function AppShell({ children }: PropsWithChildren) {
   const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  // Incremented on every open and used as the dialog's key, so each upload
+  // session starts with fresh state (file selection, mutation result).
+  const [uploadSession, setUploadSession] = useState(0);
+
+  function openUploadDialog() {
+    setUploadSession((session) => session + 1);
+    setUploadDialogOpen(true);
+  }
 
   return (
     <SearchProvider>
@@ -26,7 +34,7 @@ export function AppShell({ children }: PropsWithChildren) {
           <AppTopBar
             mobileNavOpen={mobileNavOpen}
             onToggleMobileNavigation={() => setMobileNavOpen((open) => !open)}
-            onUploadClick={() => setUploadDialogOpen(true)}
+            onUploadClick={openUploadDialog}
           />
           <Box component="main" sx={{ flexGrow: 1, minHeight: 0, overflowY: "auto" }}>
             {children}
@@ -34,7 +42,7 @@ export function AppShell({ children }: PropsWithChildren) {
           <AppFooter />
         </Box>
       </Box>
-      <UploadDialog open={uploadDialogOpen} onClose={() => setUploadDialogOpen(false)} />
+      <UploadDialog key={uploadSession} open={uploadDialogOpen} onClose={() => setUploadDialogOpen(false)} />
     </SearchProvider>
   );
 }

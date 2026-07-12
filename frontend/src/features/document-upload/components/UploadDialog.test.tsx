@@ -134,4 +134,5 @@ describe("UploadDialog", () => {
 
     expect(onClose).not.toHaveBeenCalled();
   });
+
 });

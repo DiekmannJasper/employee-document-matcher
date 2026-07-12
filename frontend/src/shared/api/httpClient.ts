@@ -16,5 +16,6 @@ export async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> 
     throw new ApiError(problem?.detail ?? response.statusText, response.status);
   }
 
-  return (await response.json()) as T;
+  const body = await response.text();
+  return (body ? JSON.parse(body) : undefined) as T;
 }
