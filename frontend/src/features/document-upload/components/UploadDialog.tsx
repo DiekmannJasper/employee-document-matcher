@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import { useRef, useState } from "react";
 import { ApiError } from "../../../shared/api/httpClient";
+import { de } from "../../../shared/i18n/de";
 import { useUploadDocument } from "../hooks/useUploadDocument";
 import { isPdfFile } from "../utils/isPdfFile";
 import { FileDropZone } from "./FileDropZone";
@@ -80,8 +81,8 @@ export function UploadDialog({ open, onClose }: UploadDialogProps) {
   return (
     <Dialog open={open} onClose={handleDialogClose} fullWidth maxWidth="sm">
       <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        PDF hochladen
-        <IconButton aria-label="Schließen" onClick={handleDialogClose} size="small">
+        {de.upload.title}
+        <IconButton aria-label={de.common.actions.close} onClick={handleDialogClose} size="small">
           <CloseIcon fontSize="small" />
         </IconButton>
       </DialogTitle>
@@ -97,13 +98,13 @@ export function UploadDialog({ open, onClose }: UploadDialogProps) {
             />
           )}
 
-          {selectedFile && !isValidPdf && <Alert severity="error">Nur PDF-Dateien werden unterstützt.</Alert>}
+          {selectedFile && !isValidPdf && <Alert severity="error">{de.upload.invalidFile}</Alert>}
 
           {uploadMutation.isPending && (
             <Stack spacing={1}>
               <LinearProgress />
               <Typography variant="body2" color="text.secondary">
-                Datei wird hochgeladen…
+                {de.upload.inProgress}
               </Typography>
             </Stack>
           )}
@@ -112,29 +113,29 @@ export function UploadDialog({ open, onClose }: UploadDialogProps) {
             <Alert severity="error">
               {uploadMutation.error instanceof ApiError
                 ? uploadMutation.error.message
-                : "Die Datei konnte nicht hochgeladen werden."}
+                : de.upload.error}
             </Alert>
           )}
 
           {uploadMutation.isSuccess && (
-            <Alert severity="success">„{uploadMutation.data.originalFilename}“ wurde erfolgreich hochgeladen.</Alert>
+            <Alert severity="success">{de.upload.success(uploadMutation.data.originalFilename)}</Alert>
           )}
         </Stack>
       </DialogContent>
       <DialogActions>
         {uploadMutation.isPending && (
           <Button onClick={handleCancelUpload} color="inherit">
-            Abbrechen
+            {de.common.actions.cancel}
           </Button>
         )}
         {!uploadMutation.isPending && !uploadMutation.isSuccess && (
           <Button onClick={handleUpload} variant="contained" disabled={!selectedFile || !isValidPdf}>
-            Hochladen
+            {de.upload.action}
           </Button>
         )}
         {uploadMutation.isSuccess && (
           <Button onClick={handleDialogClose} variant="contained">
-            Fertig
+            {de.common.actions.done}
           </Button>
         )}
       </DialogActions>

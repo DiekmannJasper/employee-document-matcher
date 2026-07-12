@@ -1,6 +1,7 @@
 import ArrowBack from "@mui/icons-material/ArrowBack";
 import { Box, Button } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
+import { de } from "../../i18n/de";
 
 export function AppFooter() {
   const navigate = useNavigate();
@@ -22,7 +23,7 @@ export function AppFooter() {
       }}
     >
       <Button startIcon={<ArrowBack />} disabled={!canGoBack} onClick={() => navigate(-1)}>
-        Zurück
+        {de.navigation.back}
       </Button>
     </Box>
   );

@@ -1,0 +1,108 @@
+const common = {
+  actions: {
+    cancel: "Abbrechen",
+    close: "Schließen",
+    confirm: "Bestätigen",
+    done: "Fertig",
+    retry: "Erneut versuchen",
+  },
+  labels: {
+    all: "Alle",
+    department: "Abteilung",
+    employee: "Mitarbeiter",
+    name: "Name",
+    personnelNumber: "Personalnummer",
+  },
+} as const;
+
+export const de = {
+  locale: "de-DE",
+  app: {
+    title: "Employee Document Matcher",
+    errors: {
+      missingRootElement: "Root element not found",
+      missingSearchProvider: "useGlobalSearch must be used within a SearchProvider",
+    },
+  },
+  common,
+  navigation: {
+    main: "Hauptnavigation",
+    open: "Navigation öffnen",
+    close: "Navigation schließen",
+    back: "Zurück",
+    employees: common.labels.employee,
+    reviews: "Prüffälle",
+  },
+  states: {
+    loading: "Wird geladen…",
+    loadError: "Daten konnten nicht geladen werden.",
+  },
+  employees: {
+    title: common.labels.employee,
+    searchPlaceholder: "Mitarbeiter suchen…",
+    loading: "Mitarbeiter werden geladen…",
+    loadError: "Mitarbeiter konnten nicht geladen werden.",
+    noneFound: "Keine Mitarbeiter gefunden.",
+    noneCreated: "Es sind noch keine Mitarbeiter angelegt.",
+    columns: {
+      name: common.labels.name,
+      personnelNumber: common.labels.personnelNumber,
+      department: common.labels.department,
+    },
+    details: {
+      personnelNumber: (value: string) => `${common.labels.personnelNumber}: ${value}`,
+      department: (value: string) => `${common.labels.department}: ${value}`,
+    },
+  },
+  documents: {
+    categoriesAriaLabel: "Dokumentkategorien",
+    all: common.labels.all,
+    unassigned: "Nicht zugeordnet",
+    recordLoading: "Personalakte wird geladen…",
+    recordLoadError: "Personalakte konnte nicht geladen werden.",
+    categoryEmpty: "In dieser Kategorie liegen noch keine Dokumente vor.",
+    uploadedAt: (date: string) => `Hochgeladen am ${date}`,
+  },
+  upload: {
+    title: "PDF hochladen",
+    chooseAriaLabel: "PDF-Datei auswählen oder hierher ziehen",
+    dropZoneHint: "PDF-Datei hierher ziehen oder klicken zum Auswählen",
+    changeFile: "Andere Datei",
+    invalidFile: "Nur PDF-Dateien werden unterstützt.",
+    inProgress: "Datei wird hochgeladen…",
+    error: "Die Datei konnte nicht hochgeladen werden.",
+    success: (filename: string) => `„${filename}“ wurde erfolgreich hochgeladen.`,
+    action: "Hochladen",
+  },
+  review: {
+    title: "Offene Prüffälle",
+    loading: "Prüffälle werden geladen…",
+    loadError: "Prüffälle konnten nicht geladen werden.",
+    empty: "Es liegen aktuell keine offenen Prüffälle vor.",
+    employeePicker: "Mitarbeiter auswählen",
+    existingCategory: "Bestehende Kategorie",
+    newCategory: "Oder neue Kategorie anlegen",
+    newCategorySuggestion: (name: string) => `Vorschlag für neue Kategorie: "${name}"`,
+    categoryEvidence: (evidence: string) => `Kategorie-Begründung: ${evidence}`,
+    confirmationError: "Bestätigung fehlgeschlagen.",
+    confirmationSuccess: "Zuordnung bestätigt.",
+    systemScore: "System-Score",
+    aiConfidence: "KI-Konfidenz",
+    confidence: {
+      high: "Hoch",
+      medium: "Mittel",
+      low: "Niedrig",
+      none: "Kein Signal",
+    },
+    matchStatus: {
+      matched: "Eindeutiger Treffer",
+      ambiguous: "Mehrdeutig",
+      noMatch: "Kein Treffer",
+      unreadable: "Nicht lesbar",
+    },
+  },
+  fileSize: {
+    bytes: "B",
+    units: ["KB", "MB", "GB"],
+  },
+} as const;

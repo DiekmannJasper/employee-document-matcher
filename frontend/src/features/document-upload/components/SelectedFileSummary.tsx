@@ -1,6 +1,7 @@
 import DescriptionOutlined from "@mui/icons-material/DescriptionOutlined";
 import { Button, Stack, Typography } from "@mui/material";
 import { formatFileSize } from "../../../shared/format/formatFileSize";
+import { de } from "../../../shared/i18n/de";
 
 interface SelectedFileSummaryProps {
   readonly file: File;
@@ -25,7 +26,7 @@ export function SelectedFileSummary({ file, onChangeFile, disabled = false }: Se
         </Typography>
       </Stack>
       <Button size="small" onClick={onChangeFile} disabled={disabled}>
-        Andere Datei
+        {de.upload.changeFile}
       </Button>
     </Stack>
   );

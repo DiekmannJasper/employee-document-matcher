@@ -1,6 +1,7 @@
 import UploadFile from "@mui/icons-material/UploadFile";
 import { Box, Typography } from "@mui/material";
 import { useRef, useState, type DragEvent, type KeyboardEvent } from "react";
+import { de } from "../../../shared/i18n/de";
 
 interface FileDropZoneProps {
   readonly onFileSelected: (file: File) => void;
@@ -34,7 +35,7 @@ export function FileDropZone({ onFileSelected }: FileDropZoneProps) {
     <Box
       role="button"
       tabIndex={0}
-      aria-label="PDF-Datei auswählen oder hierher ziehen"
+      aria-label={de.upload.chooseAriaLabel}
       onClick={openFileBrowser}
       onKeyDown={handleKeyDown}
       onDragOver={(event) => {
@@ -54,7 +55,7 @@ export function FileDropZone({ onFileSelected }: FileDropZoneProps) {
       }}
     >
       <UploadFile fontSize="large" color={isDragActive ? "primary" : "disabled"} />
-      <Typography sx={{ mt: 1 }}>PDF-Datei hierher ziehen oder klicken zum Auswählen</Typography>
+      <Typography sx={{ mt: 1 }}>{de.upload.dropZoneHint}</Typography>
       <input
         ref={inputRef}
         type="file"

@@ -2,6 +2,7 @@ import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import type { Employee } from "../api/employeeApi";
+import { de } from "../../../shared/i18n/de";
 
 interface EmployeeDataGridProps {
   readonly employees: readonly Employee[];
@@ -14,12 +15,12 @@ export function EmployeeDataGrid({ employees }: EmployeeDataGridProps) {
     () => [
       {
         field: "name",
-        headerName: "Name",
+        headerName: de.employees.columns.name,
         flex: 1,
         valueGetter: (_value, employee) => `${employee.firstName} ${employee.lastName}`,
       },
-      { field: "personnelNumber", headerName: "Personalnummer", width: 160 },
-      { field: "department", headerName: "Abteilung", flex: 1 },
+      { field: "personnelNumber", headerName: de.employees.columns.personnelNumber, width: 160 },
+      { field: "department", headerName: de.employees.columns.department, flex: 1 },
     ],
     [],
   );

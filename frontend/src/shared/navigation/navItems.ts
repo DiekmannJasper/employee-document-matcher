@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 import FactCheck from "@mui/icons-material/FactCheck";
 import PeopleAltOutlined from "@mui/icons-material/PeopleAltOutlined";
+import { de } from "../i18n/de";
 
 export interface NavItem {
   readonly id: string;
@@ -10,6 +11,6 @@ export interface NavItem {
 }
 
 export const navItems: readonly NavItem[] = [
-  { id: "dashboard", label: "Mitarbeiter", to: "/", icon: PeopleAltOutlined },
-  { id: "reviews", label: "Prüffälle", to: "/reviews", icon: FactCheck },
+  { id: "dashboard", label: de.navigation.employees, to: "/", icon: PeopleAltOutlined },
+  { id: "reviews", label: de.navigation.reviews, to: "/reviews", icon: FactCheck },
 ];

@@ -1,6 +1,7 @@
 import { Box, Drawer, Toolbar } from "@mui/material";
 import { NavigationList } from "../NavigationList/NavigationList";
 import { navItems } from "../../navigation/navItems";
+import { de } from "../../i18n/de";
 
 export const DRAWER_WIDTH = 240;
 
@@ -24,7 +25,7 @@ export function NavigationDrawer({ variant, open, onClose }: NavigationDrawerPro
       }}
     >
       <Toolbar />
-      <Box role="navigation" aria-label="Hauptnavigation">
+      <Box role="navigation" aria-label={de.navigation.main}>
         <NavigationList items={navItems} onNavigate={variant === "temporary" ? onClose : undefined} />
       </Box>
     </Drawer>

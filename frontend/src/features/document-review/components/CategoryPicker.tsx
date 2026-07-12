@@ -1,5 +1,6 @@
 import { Autocomplete, Stack, TextField } from "@mui/material";
 import type { DocumentCategory } from "../../document-categories/api/documentCategoryApi";
+import { de } from "../../../shared/i18n/de";
 
 export interface CategorySelection {
   readonly categoryId: string | null;
@@ -25,10 +26,10 @@ export function CategoryPicker({ categories, selection, onChange, disabled = fal
         getOptionLabel={(category) => category.displayName}
         isOptionEqualToValue={(option, value) => option.id === value.id}
         disabled={disabled}
-        renderInput={(params) => <TextField {...params} label="Bestehende Kategorie" size="small" />}
+        renderInput={(params) => <TextField {...params} label={de.review.existingCategory} size="small" />}
       />
       <TextField
-        label="Oder neue Kategorie anlegen"
+        label={de.review.newCategory}
         size="small"
         value={selection.newCategoryName}
         onChange={(event) => onChange({ categoryId: null, newCategoryName: event.target.value })}

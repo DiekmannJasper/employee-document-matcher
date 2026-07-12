@@ -1,11 +1,12 @@
 import { Chip } from "@mui/material";
 import type { ConfidenceLevel } from "../api/documentReviewApi";
+import { de } from "../../../shared/i18n/de";
 
 const LABELS: Record<ConfidenceLevel, string> = {
-  HIGH: "Hoch",
-  MEDIUM: "Mittel",
-  LOW: "Niedrig",
-  NONE: "Kein Signal",
+  HIGH: de.review.confidence.high,
+  MEDIUM: de.review.confidence.medium,
+  LOW: de.review.confidence.low,
+  NONE: de.review.confidence.none,
 };
 
 const COLORS: Record<ConfidenceLevel, "success" | "warning" | "error" | "default"> = {

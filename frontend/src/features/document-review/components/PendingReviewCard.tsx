@@ -1,6 +1,7 @@
 import { Alert, Button, Card, CardActions, CardContent, Stack, Typography } from "@mui/material";
 import { useState } from "react";
 import { ApiError } from "../../../shared/api/httpClient";
+import { de } from "../../../shared/i18n/de";
 import type { DocumentCategory } from "../../document-categories/api/documentCategoryApi";
 import type { Employee } from "../../employees/api/employeeApi";
 import type { PendingReview } from "../api/documentReviewApi";
@@ -50,8 +51,8 @@ export function PendingReviewCard({ review, employees, categories }: PendingRevi
             {review.evidence}
           </Typography>
           <Stack direction="row" spacing={1}>
-            <ConfidenceChip label="System-Score" level={review.systemScore} />
-            <ConfidenceChip label="KI-Konfidenz" level={review.llmConfidence} />
+            <ConfidenceChip label={de.review.systemScore} level={review.systemScore} />
+            <ConfidenceChip label={de.review.aiConfidence} level={review.llmConfidence} />
           </Stack>
           <EmployeePicker
             employees={employees}
@@ -61,12 +62,12 @@ export function PendingReviewCard({ review, employees, categories }: PendingRevi
           />
           {review.suggestedCategoryName && !review.suggestedCategoryId && (
             <Typography variant="body2" color="text.secondary">
-              Vorschlag für neue Kategorie: "{review.suggestedCategoryName}"
+              {de.review.newCategorySuggestion(review.suggestedCategoryName)}
             </Typography>
           )}
           {review.categoryEvidence && (
             <Typography variant="body2" color="text.secondary">
-              Kategorie-Begründung: {review.categoryEvidence}
+              {de.review.categoryEvidence(review.categoryEvidence)}
             </Typography>
           )}
           <CategoryPicker
@@ -79,15 +80,15 @@ export function PendingReviewCard({ review, employees, categories }: PendingRevi
             <Alert severity="error">
               {confirmMutation.error instanceof ApiError
                 ? confirmMutation.error.message
-                : "Bestätigung fehlgeschlagen."}
+                : de.review.confirmationError}
             </Alert>
           )}
-          {confirmMutation.isSuccess && <Alert severity="success">Zuordnung bestätigt.</Alert>}
+          {confirmMutation.isSuccess && <Alert severity="success">{de.review.confirmationSuccess}</Alert>}
         </Stack>
       </CardContent>
       <CardActions>
         <Button variant="contained" onClick={handleConfirm} disabled={!selectedEmployeeId || isDisabled}>
-          Bestätigen
+          {de.common.actions.confirm}
         </Button>
       </CardActions>
     </Card>
