@@ -1,6 +1,6 @@
 package com.jasper.documentmatcher.document;
 
-public enum PdfExtractionStatus {
+public enum DocumentExtractionStatus {
     SUCCESS,
     EMPTY,
     CORRUPTED,

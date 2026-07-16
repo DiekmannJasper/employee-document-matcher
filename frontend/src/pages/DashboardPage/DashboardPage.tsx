@@ -7,6 +7,7 @@ import { EmptyState } from "../../shared/components/EmptyState/EmptyState";
 import { ErrorState } from "../../shared/components/ErrorState/ErrorState";
 import { LoadingState } from "../../shared/components/LoadingState/LoadingState";
 import { PageContainer } from "../../shared/components/PageContainer/PageContainer";
+import { de } from "../../shared/i18n/de";
 
 export function DashboardPage() {
   const { data: employees, isPending, isError, refetch } = useEmployees();
@@ -32,13 +33,13 @@ export function DashboardPage() {
   return (
     <PageContainer>
       <Typography variant="h5" component="h2" gutterBottom>
-        Mitarbeiter
+        {de.employees.title}
       </Typography>
-      {isPending && <LoadingState message="Mitarbeiter werden geladen…" />}
-      {isError && <ErrorState message="Mitarbeiter konnten nicht geladen werden." onRetry={refetch} />}
+      {isPending && <LoadingState message={de.employees.loading} />}
+      {isError && <ErrorState message={de.employees.loadError} onRetry={refetch} />}
       {!isPending && !isError && filteredEmployees?.length === 0 && (
         <EmptyState
-          message={query ? "Keine Mitarbeiter gefunden." : "Es sind noch keine Mitarbeiter angelegt."}
+          message={query ? de.employees.noneFound : de.employees.noneCreated}
         />
       )}
       {!isPending && !isError && filteredEmployees && filteredEmployees.length > 0 && (

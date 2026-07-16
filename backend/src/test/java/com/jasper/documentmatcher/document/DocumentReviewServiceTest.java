@@ -16,6 +16,8 @@ import com.jasper.documentmatcher.confidence.ConfidenceLevel;
 import com.jasper.documentmatcher.employee.EmployeeNotFoundException;
 import com.jasper.documentmatcher.employee.EmployeeResponse;
 import com.jasper.documentmatcher.employee.EmployeeService;
+import com.jasper.documentmatcher.storage.DocumentStorage;
+import java.io.ByteArrayInputStream;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
@@ -31,6 +33,7 @@ class DocumentReviewServiceTest {
 
     @Mock private EmployeeService employeeService;
     @Mock private DocumentCategoryService documentCategoryService;
+    @Mock private DocumentStorage documentStorage;
     @Mock private DocumentRepository documentRepository;
     @Mock private DocumentAnalysisRepository documentAnalysisRepository;
 
@@ -39,7 +42,12 @@ class DocumentReviewServiceTest {
 
     private DocumentReviewService service() {
         return new DocumentReviewService(
-                employeeService, documentCategoryService, confidenceBandCalculator, documentRepository, documentAnalysisRepository);
+                employeeService,
+                documentCategoryService,
+                confidenceBandCalculator,
+                documentStorage,
+                documentRepository,
+                documentAnalysisRepository);
     }
 
     private DocumentAnalysis pendingAnalysis(UUID documentId, UUID matchedEmployeeId, String suggestedCategoryName) {
@@ -52,6 +60,7 @@ class DocumentReviewServiceTest {
                 null,
                 suggestedCategoryName,
                 null,
+                null,
                 "Name im Dokument gefunden",
                 ReviewStatus.PENDING,
                 Instant.now());
@@ -60,11 +69,12 @@ class DocumentReviewServiceTest {
     @Test
     void listsPendingReviewsJoinedWithTheirDocument() {
         var document = new Document(
-                UUID.randomUUID(), null, "vertrag.pdf", "storage-key", DocumentStatus.UPLOADED, Instant.now());
+                UUID.randomUUID(), null, "vertrag.pdf", "storage-key", "application/pdf", DocumentStatus.UPLOADED, Instant.now());
         var analysis = new DocumentAnalysis(
                 UUID.randomUUID(),
                 document.getId(),
                 MatchStatus.NO_MATCH,
+                null,
                 null,
                 null,
                 null,
@@ -88,7 +98,7 @@ class DocumentReviewServiceTest {
     @Test
     void bandsMatchAndCategoryScoresSeparately() {
         var document = new Document(
-                UUID.randomUUID(), null, "vertrag.pdf", "storage-key", DocumentStatus.UPLOADED, Instant.now());
+                UUID.randomUUID(), null, "vertrag.pdf", "storage-key", "application/pdf", DocumentStatus.UPLOADED, Instant.now());
         var analysis = new DocumentAnalysis(
                 UUID.randomUUID(),
                 document.getId(),
@@ -98,6 +108,7 @@ class DocumentReviewServiceTest {
                 UUID.randomUUID(),
                 null,
                 new BigDecimal("0.6000"),
+                "Schlüsselwort erkannt: 'vertrag'",
                 "Name im Dokument gefunden",
                 ReviewStatus.PENDING,
                 Instant.now());
@@ -108,13 +119,14 @@ class DocumentReviewServiceTest {
 
         assertThat(result.get(0).systemScore()).isEqualTo(ConfidenceLevel.HIGH);
         assertThat(result.get(0).llmConfidence()).isEqualTo(ConfidenceLevel.MEDIUM);
+        assertThat(result.get(0).categoryEvidence()).isEqualTo("Schlüsselwort erkannt: 'vertrag'");
     }
 
     @Test
     void confirmingAssignsTheDocumentAndMarksTheAnalysisConfirmed() {
         var employeeId = UUID.randomUUID();
         var document = new Document(
-                UUID.randomUUID(), null, "vertrag.pdf", "storage-key", DocumentStatus.UPLOADED, Instant.now());
+                UUID.randomUUID(), null, "vertrag.pdf", "storage-key", "application/pdf", DocumentStatus.UPLOADED, Instant.now());
         var analysis = pendingAnalysis(document.getId(), employeeId, null);
         when(employeeService.findById(employeeId))
                 .thenReturn(new EmployeeResponse(employeeId, "EMP-1001", "Anna", "Müller", "IT"));
@@ -135,7 +147,7 @@ class DocumentReviewServiceTest {
         var employeeId = UUID.randomUUID();
         var categoryId = UUID.randomUUID();
         var document = new Document(
-                UUID.randomUUID(), null, "vertrag.pdf", "storage-key", DocumentStatus.UPLOADED, Instant.now());
+                UUID.randomUUID(), null, "vertrag.pdf", "storage-key", "application/pdf", DocumentStatus.UPLOADED, Instant.now());
         var analysis = pendingAnalysis(document.getId(), employeeId, null);
         when(employeeService.findById(employeeId))
                 .thenReturn(new EmployeeResponse(employeeId, "EMP-1001", "Anna", "Müller", "IT"));
@@ -154,7 +166,7 @@ class DocumentReviewServiceTest {
         var employeeId = UUID.randomUUID();
         var categoryId = UUID.randomUUID();
         var document = new Document(
-                UUID.randomUUID(), null, "vertrag.pdf", "storage-key", DocumentStatus.UPLOADED, Instant.now());
+                UUID.randomUUID(), null, "vertrag.pdf", "storage-key", "application/pdf", DocumentStatus.UPLOADED, Instant.now());
         var analysis = pendingAnalysis(document.getId(), employeeId, null);
         when(employeeService.findById(employeeId))
                 .thenReturn(new EmployeeResponse(employeeId, "EMP-1001", "Anna", "Müller", "IT"));
@@ -171,7 +183,7 @@ class DocumentReviewServiceTest {
         var employeeId = UUID.randomUUID();
         var newCategoryId = UUID.randomUUID();
         var document = new Document(
-                UUID.randomUUID(), null, "kuendigung.pdf", "storage-key", DocumentStatus.UPLOADED, Instant.now());
+                UUID.randomUUID(), null, "kuendigung.pdf", "storage-key", "application/pdf", DocumentStatus.UPLOADED, Instant.now());
         var analysis = pendingAnalysis(document.getId(), employeeId, "Kündigungen");
         when(employeeService.findById(employeeId))
                 .thenReturn(new EmployeeResponse(employeeId, "EMP-1001", "Anna", "Müller", "IT"));
@@ -191,7 +203,7 @@ class DocumentReviewServiceTest {
         var employeeId = UUID.randomUUID();
         var newCategoryId = UUID.randomUUID();
         var document = new Document(
-                UUID.randomUUID(), null, "sonstiges.pdf", "storage-key", DocumentStatus.UPLOADED, Instant.now());
+                UUID.randomUUID(), null, "sonstiges.pdf", "storage-key", "application/pdf", DocumentStatus.UPLOADED, Instant.now());
         var analysis = pendingAnalysis(document.getId(), employeeId, null);
         when(employeeService.findById(employeeId))
                 .thenReturn(new EmployeeResponse(employeeId, "EMP-1001", "Anna", "Müller", "IT"));
@@ -243,12 +255,13 @@ class DocumentReviewServiceTest {
     void rejectsConfirmationForAlreadyReviewedDocument() {
         var employeeId = UUID.randomUUID();
         var document = new Document(
-                UUID.randomUUID(), employeeId, "vertrag.pdf", "storage-key", DocumentStatus.ASSIGNED, Instant.now());
+                UUID.randomUUID(), employeeId, "vertrag.pdf", "storage-key", "application/pdf", DocumentStatus.ASSIGNED, Instant.now());
         var analysis = new DocumentAnalysis(
                 UUID.randomUUID(),
                 document.getId(),
                 MatchStatus.MATCHED,
                 employeeId,
+                null,
                 null,
                 null,
                 null,
@@ -264,5 +277,42 @@ class DocumentReviewServiceTest {
         assertThatThrownBy(
                         () -> service().confirm(document.getId(), new ConfirmMatchRequest(employeeId, null, null)))
                 .isInstanceOf(DocumentAlreadyReviewedException.class);
+    }
+
+    @Test
+    void opensPendingReviewDocumentForPreview() throws Exception {
+        var document = new Document(
+                UUID.randomUUID(), null, "vertrag.pdf", "storage-key", "application/pdf", DocumentStatus.UPLOADED, Instant.now());
+        var analysis = pendingAnalysis(document.getId(), null, null);
+        var content = new ByteArrayInputStream("pdf".getBytes());
+        when(documentAnalysisRepository.findByDocumentId(document.getId())).thenReturn(Optional.of(analysis));
+        when(documentRepository.findById(document.getId())).thenReturn(Optional.of(document));
+        when(documentStorage.load("storage-key")).thenReturn(content);
+
+        var result = service().openDocument(document.getId());
+
+        assertThat(result.filename()).isEqualTo("vertrag.pdf");
+        assertThat(result.content().readAllBytes()).isEqualTo("pdf".getBytes());
+    }
+
+    @Test
+    void refusesPreviewForAlreadyReviewedDocument() {
+        var documentId = UUID.randomUUID();
+        var analysis = new DocumentAnalysis(
+                UUID.randomUUID(),
+                documentId,
+                MatchStatus.MATCHED,
+                UUID.randomUUID(),
+                null,
+                null,
+                null,
+                null,
+                null,
+                "Name im Dokument gefunden",
+                ReviewStatus.CONFIRMED,
+                Instant.now());
+        when(documentAnalysisRepository.findByDocumentId(documentId)).thenReturn(Optional.of(analysis));
+
+        assertThatThrownBy(() -> service().openDocument(documentId)).isInstanceOf(DocumentNotFoundException.class);
     }
 }

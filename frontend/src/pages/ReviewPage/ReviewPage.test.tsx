@@ -76,7 +76,7 @@ describe("ReviewPage", () => {
 
     renderPage();
 
-    expect(screen.getByText("Es liegen aktuell keine offenen Prüffälle vor.")).toBeInTheDocument();
+    expect(screen.getByText("Es liegen aktuell keine offenen Prüfung vor.")).toBeInTheDocument();
   });
 
   it("shows a suggested match and confirms it with the suggested category", async () => {
@@ -95,6 +95,7 @@ describe("ReviewPage", () => {
           systemScore: "HIGH",
           suggestedCategoryId: CATEGORY.id,
           suggestedCategoryName: null,
+          categoryEvidence: "Schlüsselwort erkannt: 'vertrag'",
           llmConfidence: "HIGH",
           uploadedAt: "2026-01-15T10:00:00Z",
         },
@@ -109,10 +110,11 @@ describe("ReviewPage", () => {
 
     expect(screen.getByText("vertrag.pdf")).toBeInTheDocument();
     expect(screen.getByText("Eindeutiger Treffer")).toBeInTheDocument();
-    expect(screen.getByText("System-Score: Hoch")).toBeInTheDocument();
-    expect(screen.getByText("KI-Konfidenz: Hoch")).toBeInTheDocument();
+    expect(screen.getByText("Namensabgleich: Hoch")).toBeInTheDocument();
+    expect(screen.getByText("Kategorie-Konfidenz: Hoch")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Bestätigen" }));
+    await user.click(screen.getAllByRole("button", { name: "Bestätigen" }).at(-1)!);
 
     expect(mutate).toHaveBeenCalledWith({
       documentId: "30000000-0000-0000-0000-000000000001",
@@ -122,7 +124,7 @@ describe("ReviewPage", () => {
     });
   });
 
-  it("confirms a suggested new category as free text", async () => {
+  it("confirms an unmatched document by manually picking an employee and category", async () => {
     const user = userEvent.setup();
     const mutate = vi.fn();
     usePendingReviews.mockReturnValue({
@@ -138,6 +140,7 @@ describe("ReviewPage", () => {
           systemScore: "NONE",
           suggestedCategoryId: null,
           suggestedCategoryName: "Kündigungen",
+          categoryEvidence: "Schlüsselwort erkannt: 'kündigung'",
           llmConfidence: "MEDIUM",
           uploadedAt: "2026-01-15T10:00:00Z",
         },
@@ -150,20 +153,22 @@ describe("ReviewPage", () => {
 
     renderPage();
 
-    expect(screen.getByText('Vorschlag für neue Kategorie: "Kündigungen"')).toBeInTheDocument();
-    expect(screen.getByDisplayValue("Kündigungen")).toBeInTheDocument();
-    expect(screen.getByText("System-Score: Kein Signal")).toBeInTheDocument();
-    expect(screen.getByText("KI-Konfidenz: Mittel")).toBeInTheDocument();
+    expect(screen.getByText("Kategorie-Begründung: Schlüsselwort erkannt: 'kündigung'")).toBeInTheDocument();
+    expect(screen.getByText("Namensabgleich: Kein Signal")).toBeInTheDocument();
+    expect(screen.getByText("Kategorie-Konfidenz: Mittel")).toBeInTheDocument();
 
     await user.click(screen.getByRole("combobox", { name: "Mitarbeiter auswählen" }));
     await user.click(await screen.findByRole("option", { name: /Anna Müller/ }));
+    await user.click(screen.getByRole("combobox", { name: "Kategorie" }));
+    await user.click(await screen.findByRole("option", { name: "Verträge" }));
     await user.click(screen.getByRole("button", { name: "Bestätigen" }));
+    await user.click(screen.getAllByRole("button", { name: "Bestätigen" }).at(-1)!);
 
     expect(mutate).toHaveBeenCalledWith({
       documentId: "30000000-0000-0000-0000-000000000003",
       employeeId: EMPLOYEE.id,
-      categoryId: null,
-      newCategoryName: "Kündigungen",
+      categoryId: CATEGORY.id,
+      newCategoryName: null,
     });
   });
 
@@ -181,6 +186,7 @@ describe("ReviewPage", () => {
           systemScore: "NONE",
           suggestedCategoryId: null,
           suggestedCategoryName: null,
+          categoryEvidence: null,
           llmConfidence: "NONE",
           uploadedAt: "2026-01-15T10:00:00Z",
         },

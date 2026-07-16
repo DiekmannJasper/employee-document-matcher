@@ -5,16 +5,19 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AppProviders } from "../../app/providers/AppProviders";
 import * as useDocumentCategoriesModule from "../../features/document-categories/hooks/useDocumentCategories";
 import * as useEmployeeDocumentsModule from "../../features/employee-documents/hooks/useEmployeeDocuments";
+import * as useUpdateDocumentCategoryModule from "../../features/employee-documents/hooks/useUpdateDocumentCategory";
 import * as useEmployeeModule from "../../features/employees/hooks/useEmployee";
 import { EmployeeDetailPage } from "./EmployeeDetailPage";
 
 vi.mock("../../features/employees/hooks/useEmployee");
 vi.mock("../../features/document-categories/hooks/useDocumentCategories");
 vi.mock("../../features/employee-documents/hooks/useEmployeeDocuments");
+vi.mock("../../features/employee-documents/hooks/useUpdateDocumentCategory");
 
 const useEmployee = vi.mocked(useEmployeeModule.useEmployee);
 const useDocumentCategories = vi.mocked(useDocumentCategoriesModule.useDocumentCategories);
 const useEmployeeDocuments = vi.mocked(useEmployeeDocumentsModule.useEmployeeDocuments);
+const useUpdateDocumentCategory = vi.mocked(useUpdateDocumentCategoryModule.useUpdateDocumentCategory);
 
 const EMPLOYEE_ID = "10000000-0000-0000-0000-000000000001";
 
@@ -43,6 +46,7 @@ function renderPage() {
 describe("EmployeeDetailPage", () => {
   beforeEach(() => {
     window.history.pushState({}, "", `/employees/${EMPLOYEE_ID}`);
+    useUpdateDocumentCategory.mockReturnValue({ mutate: vi.fn(), isPending: false } as never);
   });
 
   afterEach(() => {
@@ -116,5 +120,43 @@ describe("EmployeeDetailPage", () => {
 
     expect(screen.getByText("vertrag.pdf")).toBeInTheDocument();
     expect(screen.queryByText("sonstiges.pdf")).not.toBeInTheDocument();
+  });
+
+  it("asks for confirmation before moving a document to another folder", async () => {
+    const user = userEvent.setup();
+    const mutate = vi.fn();
+    useUpdateDocumentCategory.mockReturnValue({ mutate, isPending: false } as never);
+    useEmployee.mockReturnValue({ isPending: false, isError: false, data: EMPLOYEE, refetch: vi.fn() } as never);
+    useDocumentCategories.mockReturnValue({ isPending: false, isError: false, data: CATEGORIES, refetch: vi.fn() } as never);
+    useEmployeeDocuments.mockReturnValue({
+      isPending: false,
+      isError: false,
+      data: [
+        {
+          id: "30000000-0000-0000-0000-000000000002",
+          originalFilename: "sonstiges.pdf",
+          categoryId: null,
+          uploadedAt: "2026-02-20T10:00:00Z",
+        },
+      ],
+      refetch: vi.fn(),
+    } as never);
+
+    renderPage();
+
+    await user.click(screen.getByRole("combobox", { name: "Ordner" }));
+    await user.click(await screen.findByRole("option", { name: "Verträge" }));
+
+    expect(screen.getByRole("dialog", { name: "Dokument verschieben?" })).toBeInTheDocument();
+    expect(mutate).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("button", { name: "Verschieben" }));
+
+    expect(mutate).toHaveBeenCalledWith({
+      employeeId: EMPLOYEE_ID,
+      documentId: "30000000-0000-0000-0000-000000000002",
+      categoryId: CATEGORIES[0].id,
+      categoryName: "Verträge",
+    });
   });
 });

@@ -13,8 +13,9 @@ import {
 } from "@mui/material";
 import { useRef, useState } from "react";
 import { ApiError } from "../../../shared/api/httpClient";
+import { de } from "../../../shared/i18n/de";
 import { useUploadDocument } from "../hooks/useUploadDocument";
-import { isPdfFile } from "../utils/isPdfFile";
+import { isSupportedDocumentFile } from "../utils/isSupportedDocumentFile";
 import { FileDropZone } from "./FileDropZone";
 import { SelectedFileSummary } from "./SelectedFileSummary";
 
@@ -27,12 +28,14 @@ function isAbortError(error: unknown): boolean {
   return error instanceof DOMException && error.name === "AbortError";
 }
 
+// Holds per-session state (selected file, mutation result). The AppShell remounts
+// it with a fresh key on every open so a reopened dialog always starts empty.
 export function UploadDialog({ open, onClose }: UploadDialogProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const uploadMutation = useUploadDocument();
 
-  const isValidPdf = selectedFile ? isPdfFile(selectedFile) : true;
+  const isValidFile = selectedFile ? isSupportedDocumentFile(selectedFile) : true;
 
   function handleFileSelected(file: File) {
     uploadMutation.reset();
@@ -46,7 +49,7 @@ export function UploadDialog({ open, onClose }: UploadDialogProps) {
   }
 
   function handleUpload() {
-    if (!selectedFile || !isPdfFile(selectedFile)) {
+    if (!selectedFile || !isSupportedDocumentFile(selectedFile)) {
       return;
     }
 
@@ -78,13 +81,19 @@ export function UploadDialog({ open, onClose }: UploadDialogProps) {
   return (
     <Dialog open={open} onClose={handleDialogClose} fullWidth maxWidth="sm">
       <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        PDF hochladen
-        <IconButton aria-label="Schließen" onClick={handleDialogClose} size="small">
+        {de.upload.title}
+        <IconButton aria-label={de.common.actions.close} onClick={handleDialogClose} size="small">
           <CloseIcon fontSize="small" />
         </IconButton>
       </DialogTitle>
       <DialogContent>
         <Stack spacing={2}>
+          <Stack spacing={1}>
+            <Typography variant="subtitle2">{de.upload.title}</Typography>
+            <Typography variant="body2" color="text.secondary">
+              {de.upload.manualHint}
+            </Typography>
+          </Stack>
           {!selectedFile && <FileDropZone onFileSelected={handleFileSelected} />}
 
           {selectedFile && (
@@ -95,13 +104,13 @@ export function UploadDialog({ open, onClose }: UploadDialogProps) {
             />
           )}
 
-          {selectedFile && !isValidPdf && <Alert severity="error">Nur PDF-Dateien werden unterstützt.</Alert>}
+          {selectedFile && !isValidFile && <Alert severity="error">{de.upload.invalidFile}</Alert>}
 
           {uploadMutation.isPending && (
             <Stack spacing={1}>
               <LinearProgress />
               <Typography variant="body2" color="text.secondary">
-                Datei wird hochgeladen…
+                {de.upload.inProgress}
               </Typography>
             </Stack>
           )}
@@ -110,29 +119,29 @@ export function UploadDialog({ open, onClose }: UploadDialogProps) {
             <Alert severity="error">
               {uploadMutation.error instanceof ApiError
                 ? uploadMutation.error.message
-                : "Die Datei konnte nicht hochgeladen werden."}
+                : de.upload.error}
             </Alert>
           )}
 
           {uploadMutation.isSuccess && (
-            <Alert severity="success">„{uploadMutation.data.originalFilename}“ wurde erfolgreich hochgeladen.</Alert>
+            <Alert severity="success">{de.upload.success(uploadMutation.data.originalFilename)}</Alert>
           )}
         </Stack>
       </DialogContent>
       <DialogActions>
         {uploadMutation.isPending && (
           <Button onClick={handleCancelUpload} color="inherit">
-            Abbrechen
+            {de.common.actions.cancel}
           </Button>
         )}
         {!uploadMutation.isPending && !uploadMutation.isSuccess && (
-          <Button onClick={handleUpload} variant="contained" disabled={!selectedFile || !isValidPdf}>
-            Hochladen
+          <Button onClick={handleUpload} variant="contained" disabled={!selectedFile || !isValidFile}>
+            {de.upload.action}
           </Button>
         )}
         {uploadMutation.isSuccess && (
           <Button onClick={handleDialogClose} variant="contained">
-            Fertig
+            {de.common.actions.done}
           </Button>
         )}
       </DialogActions>

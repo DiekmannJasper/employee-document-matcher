@@ -1,5 +1,6 @@
 import UploadFile from "@mui/icons-material/UploadFile";
 import { Button, IconButton, useMediaQuery, type Theme } from "@mui/material";
+import { de } from "../../i18n/de";
 
 interface GlobalUploadButtonProps {
   readonly onClick: () => void;
@@ -10,7 +11,7 @@ export function GlobalUploadButton({ onClick }: GlobalUploadButtonProps) {
 
   if (isCompact) {
     return (
-      <IconButton color="inherit" aria-label="PDF hochladen" onClick={onClick}>
+      <IconButton color="inherit" aria-label={de.upload.buttonLabel} onClick={onClick}>
         <UploadFile />
       </IconButton>
     );
@@ -18,7 +19,7 @@ export function GlobalUploadButton({ onClick }: GlobalUploadButtonProps) {
 
   return (
     <Button color="inherit" variant="outlined" startIcon={<UploadFile />} onClick={onClick}>
-      PDF hochladen
+      {de.upload.buttonLabel}
     </Button>
   );
 }

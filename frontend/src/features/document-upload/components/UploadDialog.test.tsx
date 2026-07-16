@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AppProviders } from "../../../app/providers/AppProviders";
 import { ApiError } from "../../../shared/api/httpClient";
 import * as useUploadDocumentModule from "../hooks/useUploadDocument";
@@ -40,12 +40,16 @@ describe("UploadDialog", () => {
     vi.resetAllMocks();
   });
 
+  beforeEach(() => {
+    useUploadDocument.mockReturnValue(idleMutation() as never);
+  });
+
   it("shows the drop zone when no file is selected", () => {
     useUploadDocument.mockReturnValue(idleMutation() as never);
 
     renderDialog();
 
-    expect(screen.getByRole("button", { name: "PDF-Datei auswählen oder hierher ziehen" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Datei auswählen oder hierher ziehen" })).toBeInTheDocument();
   });
 
   it("shows the selected file and enables the upload button for a valid PDF", async () => {
@@ -61,7 +65,7 @@ describe("UploadDialog", () => {
     expect(screen.getByRole("button", { name: "Hochladen" })).toBeEnabled();
   });
 
-  it("shows a validation error and disables upload for a non-PDF file", async () => {
+  it("shows a validation error and disables upload for an unsupported file", async () => {
     const user = userEvent.setup({ applyAccept: false });
     useUploadDocument.mockReturnValue(idleMutation() as never);
 
@@ -70,8 +74,26 @@ describe("UploadDialog", () => {
     const input = document.querySelector('input[type="file"]') as HTMLInputElement;
     await user.upload(input, new File(["hi"], "notiz.txt", { type: "text/plain" }));
 
-    expect(screen.getByText("Nur PDF-Dateien werden unterstützt.")).toBeInTheDocument();
+    expect(screen.getByText("Nur PDF-, Word- (.docx) und XML-Dateien werden unterstützt.")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Hochladen" })).toBeDisabled();
+  });
+
+  it("shows the selected file and enables the upload button for a valid docx", async () => {
+    const user = userEvent.setup();
+    useUploadDocument.mockReturnValue(idleMutation() as never);
+
+    renderDialog();
+
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    await user.upload(
+      input,
+      new File(["PK"], "zeugnis.docx", {
+        type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      }),
+    );
+
+    expect(screen.getByText("zeugnis.docx")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Hochladen" })).toBeEnabled();
   });
 
   it("triggers the upload mutation when clicking upload", async () => {
@@ -114,7 +136,14 @@ describe("UploadDialog", () => {
     useUploadDocument.mockReturnValue(
       idleMutation({
         isSuccess: true,
-        data: { id: "1", originalFilename: "vertrag.pdf", status: "UPLOADED", uploadedAt: new Date().toISOString() },
+        data: {
+          id: "1",
+          originalFilename: "vertrag.pdf",
+          status: "UPLOADED",
+          uploadedAt: new Date().toISOString(),
+          assignedEmployeeName: null,
+          assignedCategoryName: null,
+        },
       }) as never,
     );
 
@@ -134,4 +163,5 @@ describe("UploadDialog", () => {
 
     expect(onClose).not.toHaveBeenCalled();
   });
+
 });

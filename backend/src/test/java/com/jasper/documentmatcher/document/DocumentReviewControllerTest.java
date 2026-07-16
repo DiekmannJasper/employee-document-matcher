@@ -6,12 +6,14 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jasper.documentmatcher.common.GlobalExceptionHandler;
 import com.jasper.documentmatcher.confidence.ConfidenceLevel;
+import java.io.ByteArrayInputStream;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -43,7 +45,9 @@ class DocumentReviewControllerTest {
                 ConfidenceLevel.NONE,
                 null,
                 null,
+                null,
                 ConfidenceLevel.NONE,
+                "application/pdf",
                 Instant.now());
         when(documentReviewService.findPendingReviews()).thenReturn(List.of(response));
 
@@ -58,7 +62,7 @@ class DocumentReviewControllerTest {
         var documentId = UUID.randomUUID();
         var employeeId = UUID.randomUUID();
         var response =
-                new DocumentSummaryResponse(documentId, "vertrag.pdf", null, Instant.now());
+                new DocumentSummaryResponse(documentId, "vertrag.pdf", null, "application/pdf", Instant.now());
         when(documentReviewService.confirm(eq(documentId), any())).thenReturn(response);
 
         mockMvc.perform(post("/api/documents/{documentId}/confirmation", documentId)
@@ -91,5 +95,35 @@ class DocumentReviewControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(new ConfirmMatchRequest(employeeId, null, null))))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void confirmReturnsBadRequestProblemForMalformedJson() throws Exception {
+        mockMvc.perform(post("/api/documents/{documentId}/confirmation", UUID.randomUUID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{not json"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value("Der Request-Body konnte nicht gelesen werden."));
+    }
+
+    @Test
+    void opensPendingReviewDocumentInline() throws Exception {
+        var documentId = UUID.randomUUID();
+        when(documentReviewService.openDocument(documentId))
+                .thenReturn(new DocumentFileResponse("vertrag.pdf", "application/pdf", new ByteArrayInputStream("pdf".getBytes())));
+
+        mockMvc.perform(get("/api/documents/{documentId}/file", documentId))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/pdf"))
+                .andExpect(header().string("Content-Disposition", "inline; filename=\"vertrag.pdf\""));
+    }
+
+    @Test
+    void unexpectedFailuresReturnAGenericProblemWithoutInternals() throws Exception {
+        when(documentReviewService.findPendingReviews()).thenThrow(new IllegalStateException("internal detail"));
+
+        mockMvc.perform(get("/api/documents/pending-review"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.detail").value("Ein unerwarteter Fehler ist aufgetreten."));
     }
 }

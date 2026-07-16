@@ -4,6 +4,7 @@ import com.jasper.documentmatcher.category.CategoryOrigin;
 import com.jasper.documentmatcher.category.DocumentCategoryService;
 import com.jasper.documentmatcher.confidence.ConfidenceBandCalculator;
 import com.jasper.documentmatcher.employee.EmployeeService;
+import com.jasper.documentmatcher.storage.DocumentStorage;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -17,6 +18,7 @@ class DocumentReviewService {
     private final EmployeeService employeeService;
     private final DocumentCategoryService documentCategoryService;
     private final ConfidenceBandCalculator confidenceBandCalculator;
+    private final DocumentStorage documentStorage;
     private final DocumentRepository documentRepository;
     private final DocumentAnalysisRepository documentAnalysisRepository;
 
@@ -24,11 +26,13 @@ class DocumentReviewService {
             EmployeeService employeeService,
             DocumentCategoryService documentCategoryService,
             ConfidenceBandCalculator confidenceBandCalculator,
+            DocumentStorage documentStorage,
             DocumentRepository documentRepository,
             DocumentAnalysisRepository documentAnalysisRepository) {
         this.employeeService = employeeService;
         this.documentCategoryService = documentCategoryService;
         this.confidenceBandCalculator = confidenceBandCalculator;
+        this.documentStorage = documentStorage;
         this.documentRepository = documentRepository;
         this.documentAnalysisRepository = documentAnalysisRepository;
     }
@@ -70,6 +74,20 @@ class DocumentReviewService {
         analysis.confirm();
 
         return DocumentSummaryResponse.from(document);
+    }
+
+    DocumentFileResponse openDocument(UUID documentId) {
+        var analysis = documentAnalysisRepository
+                .findByDocumentId(documentId)
+                .orElseThrow(() -> new DocumentNotFoundException(documentId));
+        if (analysis.getReviewStatus() != ReviewStatus.PENDING) {
+            throw new DocumentNotFoundException(documentId);
+        }
+
+        var document =
+                documentRepository.findById(documentId).orElseThrow(() -> new DocumentNotFoundException(documentId));
+        return new DocumentFileResponse(
+                document.getOriginalFilename(), document.getContentType(), documentStorage.load(document.getStorageKey()));
     }
 
     private Optional<UUID> resolveCategory(ConfirmMatchRequest request, DocumentAnalysis analysis) {

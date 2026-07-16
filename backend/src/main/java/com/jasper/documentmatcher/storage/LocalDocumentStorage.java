@@ -24,8 +24,8 @@ public class LocalDocumentStorage implements DocumentStorage {
     }
 
     @Override
-    public String store(InputStream content) {
-        var storageKey = UUID.randomUUID() + ".pdf";
+    public String store(InputStream content, String extension) {
+        var storageKey = UUID.randomUUID() + "." + extension;
         var target = resolveWithinBaseDirectory(storageKey);
 
         try {

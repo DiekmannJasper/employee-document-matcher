@@ -23,6 +23,7 @@ class DocumentRepositoryTest extends AbstractPostgresIntegrationTest {
                 ANNA_MUELLER_ID,
                 "arbeitsvertrag.pdf",
                 UUID.randomUUID().toString(),
+                "application/pdf",
                 DocumentStatus.ASSIGNED,
                 Instant.now());
 
@@ -41,6 +42,7 @@ class DocumentRepositoryTest extends AbstractPostgresIntegrationTest {
                 ANNA_MUELLER_ID,
                 "lohnabrechnung.pdf",
                 UUID.randomUUID().toString(),
+                "application/pdf",
                 DocumentStatus.ASSIGNED,
                 Instant.now()));
 
@@ -56,6 +58,7 @@ class DocumentRepositoryTest extends AbstractPostgresIntegrationTest {
                 null,
                 "unbekannt.pdf",
                 UUID.randomUUID().toString(),
+                "application/pdf",
                 DocumentStatus.UPLOADED,
                 Instant.now());
 

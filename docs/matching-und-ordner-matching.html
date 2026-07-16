@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <title>Dokumentation: Namens- und Ordner-Matching</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 20mm 18mm;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: #1f2933;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 11.5pt;
+      line-height: 1.55;
+      background: #ffffff;
+    }
+
+    h1,
+    h2,
+    h3 {
+      color: #102a43;
+      line-height: 1.2;
+      page-break-after: avoid;
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: 26pt;
+    }
+
+    h2 {
+      margin: 28px 0 10px;
+      padding-top: 6px;
+      border-top: 1px solid #d9e2ec;
+      font-size: 17pt;
+    }
+
+    h3 {
+      margin: 18px 0 6px;
+      font-size: 13pt;
+    }
+
+    p {
+      margin: 0 0 10px;
+    }
+
+    ul,
+    ol {
+      margin: 6px 0 12px 22px;
+      padding: 0;
+    }
+
+    li {
+      margin: 4px 0;
+    }
+
+    code {
+      padding: 1px 4px;
+      border-radius: 3px;
+      background: #f0f4f8;
+      color: #102a43;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 10pt;
+    }
+
+    table {
+      width: 100%;
+      margin: 12px 0 18px;
+      border-collapse: collapse;
+      page-break-inside: avoid;
+      font-size: 10.5pt;
+    }
+
+    th,
+    td {
+      padding: 8px 9px;
+      border: 1px solid #bcccdc;
+      vertical-align: top;
+    }
+
+    th {
+      background: #e6f6ff;
+      color: #102a43;
+      text-align: left;
+    }
+
+    .subtitle {
+      margin-bottom: 26px;
+      color: #52606d;
+      font-size: 13pt;
+    }
+
+    .box {
+      margin: 14px 0;
+      padding: 12px 14px;
+      border-left: 4px solid #0b7285;
+      background: #f0fcff;
+      page-break-inside: avoid;
+    }
+
+    .flow {
+      margin: 14px 0 18px;
+      padding: 0;
+      list-style: none;
+      counter-reset: step;
+    }
+
+    .flow li {
+      position: relative;
+      margin: 0 0 8px;
+      padding: 9px 12px 9px 42px;
+      border: 1px solid #d9e2ec;
+      border-radius: 6px;
+      background: #fbfcfd;
+      page-break-inside: avoid;
+    }
+
+    .flow li::before {
+      position: absolute;
+      left: 12px;
+      top: 9px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #0b7285;
+      color: white;
+      content: counter(step);
+      counter-increment: step;
+      font-size: 9pt;
+      font-weight: bold;
+      line-height: 20px;
+      text-align: center;
+    }
+
+    .small {
+      color: #52606d;
+      font-size: 10pt;
+    }
+  </style>
+</head>
+<body>
+  <h1>Namens- und Ordner-Matching</h1>
+  <p class="subtitle">Dokumentation der Zuordnungslogik im Employee Document Matcher</p>
+
+  <div class="box">
+    <strong>Kernaussage:</strong>
+    Das System trifft keine freie KI-Entscheidung über Personen. Es sucht deterministisch nach vollständigen Namen bekannter Mitarbeitender im extrahierten PDF-Text. Die Ordnerzuordnung ist fachlich eine Kategoriezuordnung und wird erst nach manueller Bestätigung verbindlich gespeichert.
+  </div>
+
+  <h2>1. Ausgangspunkt nach dem PDF-Upload</h2>
+  <p>
+    Wenn ein PDF hochgeladen wird, speichert das Backend die Datei zunächst unter einem technischen Speicherschlüssel. Dieser Speicherschlüssel ist eine zufällige UUID mit der Endung <code>.pdf</code>. Der ursprüngliche Dateiname wird zusätzlich in der Datenbank gespeichert, hat aber keinen Einfluss auf die automatische Zuordnung.
+  </p>
+  <p>
+    Danach wird der Text aus dem PDF extrahiert. Nur wenn die Textextraktion erfolgreich ist, laufen Namensmatching und Kategorie-Matching. Ist das PDF leer, verschlüsselt, beschädigt oder rein bildbasiert, kann der Inhalt nicht zuverlässig geprüft werden. In diesem Fall erhält die Analyse den Status <code>UNREADABLE</code> und landet im Review.
+  </p>
+
+  <h2>2. Namensmatching</h2>
+  <p>
+    Das Namensmatching findet in der Klasse <code>PersonMatcher</code> statt. Es arbeitet mit einer kontrollierten Kandidatenliste: Alle Mitarbeitenden werden aus der Datenbank gelesen, und aus Vorname und Nachname wird jeweils ein vollständiger Name gebildet, zum Beispiel <code>Anna Müller</code>.
+  </p>
+
+  <ol class="flow">
+    <li>PDF-Text wird aus dem Dokument extrahiert.</li>
+    <li>Alle Mitarbeitenden werden aus der Datenbank geladen.</li>
+    <li>Für jeden Mitarbeitenden wird ein Kandidat aus <code>employeeId</code> und vollständigem Namen gebaut.</li>
+    <li>PDF-Text und Kandidatenname werden normalisiert.</li>
+    <li>Für jeden vollständigen Namen wird geprüft, ob er als eigenständiger Treffer im Text vorkommt.</li>
+    <li>Aus der Anzahl der Treffer entsteht der Status <code>MATCHED</code>, <code>NO_MATCH</code> oder <code>AMBIGUOUS</code>.</li>
+  </ol>
+
+  <h3>Normalisierung</h3>
+  <p>
+    Vor dem Vergleich normalisiert das System sowohl den PDF-Text als auch den Kandidatennamen:
+  </p>
+  <ul>
+    <li>Unicode-Normalisierung mit <code>NFKC</code></li>
+    <li>Umwandlung in Kleinschreibung</li>
+    <li>Entfernen führender und nachfolgender Leerzeichen</li>
+    <li>Zusammenfassen mehrerer Leerzeichen, Tabs oder Zeilenumbrüche zu einem Leerzeichen</li>
+  </ul>
+  <p>
+    Dadurch matchen Varianten wie <code>ANNA MÜLLER</code>, <code>Anna    Müller</code> oder ein Zeilenumbruch zwischen Vor- und Nachname zuverlässiger.
+  </p>
+
+  <h3>Warum vollständige Namen?</h3>
+  <p>
+    Das System sucht bewusst nur nach vollständigen Namen. Ein einzelner Vorname oder Nachname reicht nicht aus. Das reduziert falsche Treffer, etwa wenn mehrere Personen denselben Vornamen haben oder ein Nachname zufällig in einem anderen Kontext vorkommt.
+  </p>
+
+  <h3>Wortgrenzen im Regex</h3>
+  <p>
+    Für die Suche wird ein regulärer Ausdruck mit Unicode-Buchstabengrenzen verwendet:
+  </p>
+  <p><code>(?&lt;!\p{L}) + vollständiger Name + (?!\p{L})</code></p>
+  <p>
+    Dadurch muss vor und nach dem Namen entweder kein Buchstabe stehen oder ein Trennzeichen wie Leerzeichen, Komma, Punkt oder Zeilenende. Der Name wird also nicht als Teil eines längeren Wortes erkannt.
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Text im PDF</th>
+        <th>Ergebnis</th>
+        <th>Begründung</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>Anna Müller</code></td>
+        <td><code>MATCHED</code></td>
+        <td>Genau ein vollständiger bekannter Mitarbeitername kommt vor.</td>
+      </tr>
+      <tr>
+        <td><code>ANNA MÜLLER</code></td>
+        <td><code>MATCHED</code></td>
+        <td>Groß-/Kleinschreibung wird durch die Normalisierung ignoriert.</td>
+      </tr>
+      <tr>
+        <td><code>Anna</code></td>
+        <td><code>NO_MATCH</code></td>
+        <td>Nur der Vorname reicht nicht für eine sichere Zuordnung.</td>
+      </tr>
+      <tr>
+        <td><code>Anna Müller und David Schneider</code></td>
+        <td><code>AMBIGUOUS</code></td>
+        <td>Mehrere bekannte vollständige Namen wurden gefunden.</td>
+      </tr>
+      <tr>
+        <td><code>Annalena Müller-Schmidt</code></td>
+        <td><code>NO_MATCH</code> für <code>Anna Müller</code></td>
+        <td>Der Kandidatenname wird nicht als eigenständiger Vollname gefunden.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>3. Ergebniszustände des Namensmatchings</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Status</th>
+        <th>Bedeutung</th>
+        <th>Gespeicherte Zuordnung</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>MATCHED</code></td>
+        <td>Genau ein bekannter vollständiger Mitarbeitername wurde gefunden.</td>
+        <td>Die passende <code>employeeId</code> wird als Vorschlag in der Analyse gespeichert.</td>
+      </tr>
+      <tr>
+        <td><code>NO_MATCH</code></td>
+        <td>Kein vollständiger bekannter Mitarbeitername wurde gefunden.</td>
+        <td>Es wird keine Person vorgeschlagen.</td>
+      </tr>
+      <tr>
+        <td><code>AMBIGUOUS</code></td>
+        <td>Mehrere bekannte vollständige Namen wurden gefunden.</td>
+        <td>Es wird keine automatische Person ausgewählt; die Kandidaten werden als Hinweis gespeichert.</td>
+      </tr>
+      <tr>
+        <td><code>UNREADABLE</code></td>
+        <td>Der PDF-Text konnte nicht extrahiert werden.</td>
+        <td>Es findet kein Namensmatching statt.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>4. Kategorie- und Ordner-Matching</h2>
+  <p>
+    Die Ordnerlogik ist im System als Dokumentkategorie modelliert. Ein Ordner in der Oberfläche entspricht also einer Kategorie wie <code>Verträge</code>, <code>Gehalt</code> oder <code>Kündigungen</code>. Es werden dabei keine echten Unterordner im Dateisystem angelegt; die Zuordnung entsteht über die Spalte <code>category_id</code> am Dokument.
+  </p>
+  <p>
+    Die Klassifikation ist regelbasiert. Das System sucht im normalisierten PDF-Text nach bekannten Schlüsselwörtern. Wird genau eine Dokumentart erkannt, wird eine vorhandene Kategorie vorgeschlagen oder ein neuer Kategoriename vorgeschlagen.
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Regel-Code</th>
+        <th>Anzeigename</th>
+        <th>Schlüsselwörter</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>CONTRACT</code></td>
+        <td>Verträge</td>
+        <td><code>arbeitsvertrag</code>, <code>vertrag</code></td>
+      </tr>
+      <tr>
+        <td><code>SALARY</code></td>
+        <td>Gehalt</td>
+        <td><code>gehaltsabrechnung</code>, <code>lohnabrechnung</code>, <code>gehalt</code>, <code>lohn</code></td>
+      </tr>
+      <tr>
+        <td><code>REFERENCE</code></td>
+        <td>Zeugnisse</td>
+        <td><code>arbeitszeugnis</code>, <code>zeugnis</code></td>
+      </tr>
+      <tr>
+        <td><code>CERTIFICATE</code></td>
+        <td>Bescheinigungen</td>
+        <td><code>bescheinigung</code></td>
+      </tr>
+      <tr>
+        <td><code>TERMINATION</code></td>
+        <td>Kündigungen</td>
+        <td><code>kündigung</code>, <code>kuendigung</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Wie ein Kategorie-Treffer entsteht</h3>
+  <p>
+    Der Klassifizierer normalisiert den PDF-Text und prüft dann jede Regel. Für Schlüsselwörter wird eine nachfolgende Buchstabengrenze verwendet. Dadurch matcht zum Beispiel <code>Arbeitsvertrag</code>, weil das Wort auf <code>vertrag</code> endet. Gleichzeitig soll ein Wort wie <code>vertragen</code> nicht als Vertrag erkannt werden.
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Anzahl erkannter Regeln</th>
+        <th>Ergebnis</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Keine Regel</td>
+        <td>Keine Kategorie wird automatisch vorgeschlagen; manuelle Prüfung.</td>
+      </tr>
+      <tr>
+        <td>Genau eine Regel</td>
+        <td>Die passende Kategorie wird vorgeschlagen oder als neuer Kategoriename vorgeschlagen.</td>
+      </tr>
+      <tr>
+        <td>Mehrere Regeln</td>
+        <td>Keine automatische Kategorieauswahl, weil mehrere Dokumentarten möglich sind.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>5. Bestehender Ordner oder neuer Ordner?</h2>
+  <p>
+    Wenn eine Kategorie bestätigt oder neu eingegeben wird, prüft der <code>DocumentCategoryService</code>, ob bereits eine Kategorie mit gleichem normalisierten Anzeigenamen existiert. So sollen nahezu gleiche Ordnernamen nicht doppelt entstehen.
+  </p>
+  <p>
+    Für diesen Vergleich werden Namen klein geschrieben, getrimmt und wiederholte Leerzeichen zusammengefasst. Dadurch gelten zum Beispiel <code>Kündigungen</code> und <code> kündigungen </code> als gleich. Wenn eine passende Kategorie existiert, wird deren ID wiederverwendet. Wenn nicht, wird eine neue Kategorie angelegt.
+  </p>
+  <p>
+    Für neue Kategorien wird zusätzlich ein technischer Code erzeugt. Dabei werden Umlaute transliteriert, Sonderzeichen durch Unterstriche ersetzt und der Code in Großbuchstaben gespeichert. Aus <code>Kündigungen</code> wird zum Beispiel ein Code wie <code>KUENDIGUNGEN</code>. Falls der Code bereits existiert, wird ein Suffix wie <code>_2</code> angehängt.
+  </p>
+
+  <h2>6. Warum die Review-Bestätigung wichtig ist</h2>
+  <p>
+    Ein automatischer Treffer ist in dieser Anwendung bewusst nur ein Vorschlag. Die eigentliche Zuordnung passiert erst, wenn der Benutzer den Review bestätigt. Das ist besonders wichtig, weil HR-Dokumente sensibel sind und eine falsche Ablage schwerer wiegt als ein zusätzlicher Prüfschritt.
+  </p>
+  <p>
+    Beim Bestätigen gilt:
+  </p>
+  <ul>
+    <li>Eine <code>employeeId</code> ist immer erforderlich.</li>
+    <li>Es darf entweder eine bestehende <code>categoryId</code> oder ein <code>newCategoryName</code> übergeben werden, aber nicht beides gleichzeitig.</li>
+    <li>Bereits bestätigte Dokumente können nicht erneut bestätigt werden.</li>
+    <li>Nach der Bestätigung erhält das Dokument den Status <code>ASSIGNED</code>.</li>
+  </ul>
+
+  <h2>7. Dateisystem vs. fachliche Ordner</h2>
+  <p>
+    Die hochgeladenen PDFs werden physisch in einem lokalen Basisverzeichnis gespeichert. Dort verwendet das System einen technischen Speicherschlüssel wie <code>3f1a...pdf</code>. Dieser Speicherort ist absichtlich unabhängig vom Mitarbeitenden und von der Kategorie.
+  </p>
+  <p>
+    Die sichtbare Ordnerstruktur in der Anwendung entsteht dagegen aus Datenbankinformationen:
+  </p>
+  <ul>
+    <li><code>employee_id</code> bestimmt, zu welchem Mitarbeitenden ein Dokument gehört.</li>
+    <li><code>category_id</code> bestimmt, in welchem fachlichen Ordner beziehungsweise in welcher Kategorie es angezeigt wird.</li>
+    <li><code>original_filename</code> bleibt für Anzeige und Download erhalten.</li>
+    <li><code>storage_key</code> zeigt auf die tatsächlich gespeicherte PDF-Datei.</li>
+  </ul>
+
+  <div class="box">
+    <strong>Zusammenfassung:</strong>
+    Das Namensmatching beantwortet die Frage: „Welcher bekannte Mitarbeitende wird im Dokument eindeutig genannt?“ Das Ordner-Matching beantwortet die Frage: „Welche Dokumentart passt anhand bekannter Schlüsselwörter?“ Beide Ergebnisse bleiben Vorschläge, bis der Benutzer sie im Review bestätigt.
+  </div>
+
+  <p class="small">
+    Relevante Implementierung: <code>PersonMatcher</code>, <code>DocumentAnalysisService</code>, <code>RuleBasedDocumentClassifier</code>, <code>DocumentCategoryService</code>, <code>DocumentReviewService</code>, <code>LocalDocumentStorage</code>.
+  </p>
+</body>
+</html>

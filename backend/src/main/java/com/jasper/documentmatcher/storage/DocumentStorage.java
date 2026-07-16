@@ -4,7 +4,7 @@ import java.io.InputStream;
 
 public interface DocumentStorage {
 
-    String store(InputStream content);
+    String store(InputStream content, String extension);
 
     InputStream load(String storageKey);
 

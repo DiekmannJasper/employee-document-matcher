@@ -19,7 +19,9 @@ public record PendingReviewResponse(
         ConfidenceLevel systemScore,
         UUID suggestedCategoryId,
         String suggestedCategoryName,
+        String categoryEvidence,
         ConfidenceLevel llmConfidence,
+        String contentType,
         Instant uploadedAt) {
 
     static PendingReviewResponse from(
@@ -33,7 +35,9 @@ public record PendingReviewResponse(
                 confidenceBandCalculator.bandFor(analysis.getMatchScore()),
                 analysis.getSuggestedCategoryId(),
                 analysis.getSuggestedCategoryName(),
+                analysis.getCategoryEvidence(),
                 confidenceBandCalculator.bandFor(analysis.getCategoryConfidence()),
+                document.getContentType(),
                 document.getUploadedAt());
     }
 }

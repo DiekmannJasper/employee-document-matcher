@@ -21,17 +21,27 @@ class LocalDocumentStorageTest {
         var storage = new LocalDocumentStorage(tempDir.toString());
         var content = new ByteArrayInputStream("%PDF-1.4 test".getBytes(StandardCharsets.UTF_8));
 
-        var storageKey = storage.store(content);
+        var storageKey = storage.store(content, "pdf");
 
         assertThat(storageKey).matches("[0-9a-f-]{36}\\.pdf");
         assertThat(Files.exists(tempDir.resolve(storageKey))).isTrue();
     }
 
     @Test
+    void storePreservesTheGivenExtension() {
+        var storage = new LocalDocumentStorage(tempDir.toString());
+        var content = new ByteArrayInputStream("PK...".getBytes(StandardCharsets.UTF_8));
+
+        var storageKey = storage.store(content, "docx");
+
+        assertThat(storageKey).matches("[0-9a-f-]{36}\\.docx");
+    }
+
+    @Test
     void loadReturnsPreviouslyStoredContent() throws Exception {
         var storage = new LocalDocumentStorage(tempDir.toString());
         var original = "%PDF-1.4 test content";
-        var storageKey = storage.store(new ByteArrayInputStream(original.getBytes(StandardCharsets.UTF_8)));
+        var storageKey = storage.store(new ByteArrayInputStream(original.getBytes(StandardCharsets.UTF_8)), "pdf");
 
         try (var loaded = storage.load(storageKey)) {
             var loadedContent = new String(loaded.readAllBytes(), StandardCharsets.UTF_8);
@@ -42,7 +52,7 @@ class LocalDocumentStorageTest {
     @Test
     void deleteRemovesStoredContent() {
         var storage = new LocalDocumentStorage(tempDir.toString());
-        var storageKey = storage.store(new ByteArrayInputStream("%PDF-1.4".getBytes(StandardCharsets.UTF_8)));
+        var storageKey = storage.store(new ByteArrayInputStream("%PDF-1.4".getBytes(StandardCharsets.UTF_8)), "pdf");
 
         storage.delete(storageKey);
 

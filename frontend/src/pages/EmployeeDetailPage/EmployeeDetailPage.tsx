@@ -12,6 +12,7 @@ import { EmptyState } from "../../shared/components/EmptyState/EmptyState";
 import { ErrorState } from "../../shared/components/ErrorState/ErrorState";
 import { LoadingState } from "../../shared/components/LoadingState/LoadingState";
 import { PageContainer } from "../../shared/components/PageContainer/PageContainer";
+import { de } from "../../shared/i18n/de";
 
 const ALL_FOLDER_ID = "all";
 const UNASSIGNED_FOLDER_ID = "unassigned";
@@ -44,9 +45,9 @@ export function EmployeeDetailPage() {
     }));
 
     return [
-      { id: ALL_FOLDER_ID, label: "Alle", count: totalCount },
+      { id: ALL_FOLDER_ID, label: de.documents.all, count: totalCount },
       ...categoryFolders,
-      { id: UNASSIGNED_FOLDER_ID, label: "Nicht zugeordnet", count: documentsByCategory.get(UNASSIGNED_FOLDER_ID)?.length ?? 0 },
+      { id: UNASSIGNED_FOLDER_ID, label: de.documents.unassigned, count: documentsByCategory.get(UNASSIGNED_FOLDER_ID)?.length ?? 0 },
     ];
   }, [categoriesQuery.data, documentsByCategory, documentsQuery.data]);
 
@@ -62,10 +63,10 @@ export function EmployeeDetailPage() {
 
   return (
     <PageContainer>
-      {isPending && <LoadingState message="Personalakte wird geladen…" />}
+      {isPending && <LoadingState message={de.documents.recordLoading} />}
       {isError && (
         <ErrorState
-          message="Personalakte konnte nicht geladen werden."
+          message={de.documents.recordLoadError}
           onRetry={() => {
             employeeQuery.refetch();
             categoriesQuery.refetch();
@@ -78,9 +79,9 @@ export function EmployeeDetailPage() {
           <EmployeeMasterData employee={employeeQuery.data} />
           <CategoryFolderTabs folders={folders} selectedId={selectedFolderId} onSelect={setSelectedFolderId} />
           {visibleDocuments.length === 0 ? (
-            <EmptyState message="In dieser Kategorie liegen noch keine Dokumente vor." />
+            <EmptyState message={de.documents.categoryEmpty} />
           ) : (
-            <DocumentList documents={visibleDocuments} />
+            <DocumentList employeeId={employeeQuery.data.id} categories={categoriesQuery.data ?? []} documents={visibleDocuments} />
           )}
         </>
       )}

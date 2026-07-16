@@ -1,4 +1,4 @@
-import { Stack, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { useDocumentCategories } from "../../features/document-categories/hooks/useDocumentCategories";
 import { PendingReviewCard } from "../../features/document-review/components/PendingReviewCard";
 import { usePendingReviews } from "../../features/document-review/hooks/usePendingReviews";
@@ -7,6 +7,7 @@ import { EmptyState } from "../../shared/components/EmptyState/EmptyState";
 import { ErrorState } from "../../shared/components/ErrorState/ErrorState";
 import { LoadingState } from "../../shared/components/LoadingState/LoadingState";
 import { PageContainer } from "../../shared/components/PageContainer/PageContainer";
+import { de } from "../../shared/i18n/de";
 
 export function ReviewPage() {
   const pendingReviewsQuery = usePendingReviews();
@@ -19,12 +20,12 @@ export function ReviewPage() {
   return (
     <PageContainer>
       <Typography variant="h5" component="h2" gutterBottom>
-        Offene Prüffälle
+        {de.review.title}
       </Typography>
-      {isPending && <LoadingState message="Prüffälle werden geladen…" />}
+      {isPending && <LoadingState message={de.review.loading} />}
       {isError && (
         <ErrorState
-          message="Prüffälle konnten nicht geladen werden."
+          message={de.review.loadError}
           onRetry={() => {
             pendingReviewsQuery.refetch();
             employeesQuery.refetch();
@@ -33,10 +34,10 @@ export function ReviewPage() {
         />
       )}
       {!isPending && !isError && pendingReviewsQuery.data?.length === 0 && (
-        <EmptyState message="Es liegen aktuell keine offenen Prüffälle vor." />
+        <EmptyState message={de.review.empty} />
       )}
       {!isPending && !isError && pendingReviewsQuery.data && pendingReviewsQuery.data.length > 0 && (
-        <Stack spacing={2}>
+        <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "repeat(2, 1fr)" }, gap: 2 }}>
           {pendingReviewsQuery.data.map((review) => (
             <PendingReviewCard
               key={review.documentId}
@@ -45,7 +46,7 @@ export function ReviewPage() {
               categories={categoriesQuery.data ?? []}
             />
           ))}
-        </Stack>
+        </Box>
       )}
     </PageContainer>
   );

@@ -1,4 +1,5 @@
 import { Tab, Tabs } from "@mui/material";
+import { de } from "../../../shared/i18n/de";
 
 export interface CategoryFolder {
   readonly id: string;
@@ -19,7 +20,7 @@ export function CategoryFolderTabs({ folders, selectedId, onSelect }: CategoryFo
       onChange={(_event, value: string) => onSelect(value)}
       variant="scrollable"
       allowScrollButtonsMobile
-      aria-label="Dokumentkategorien"
+      aria-label={de.documents.categoriesAriaLabel}
     >
       {folders.map((folder) => (
         <Tab key={folder.id} value={folder.id} label={`${folder.label} (${folder.count})`} />

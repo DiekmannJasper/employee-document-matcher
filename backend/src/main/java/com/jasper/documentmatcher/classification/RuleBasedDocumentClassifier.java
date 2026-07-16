@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.text.Normalizer;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -64,14 +65,24 @@ public class RuleBasedDocumentClassifier implements DocumentClassifier {
     }
 
     private boolean matchesKeyword(String normalizedText, CategoryRule rule) {
-        return rule.keywords().stream().anyMatch(normalizedText::contains);
+        return rule.keywords().stream().anyMatch(keyword -> containsKeyword(normalizedText, keyword));
     }
 
     private String matchedKeyword(String normalizedText, CategoryRule rule) {
         return rule.keywords().stream()
-                .filter(normalizedText::contains)
+                .filter(keyword -> containsKeyword(normalizedText, keyword))
                 .findFirst()
                 .orElseThrow();
+    }
+
+    /**
+     * Deliberate trade-off for German compounds: only a trailing word boundary is enforced,
+     * so compounds ending in the keyword ("Arbeitsvertrag", "Mietvertrag") still match, while
+     * words that merely continue past it ("vertragen", "Kündigungsfrist") do not.
+     */
+    private boolean containsKeyword(String normalizedText, String keyword) {
+        var pattern = Pattern.compile(Pattern.quote(keyword) + "(?!\\p{L})", Pattern.UNICODE_CHARACTER_CLASS);
+        return pattern.matcher(normalizedText).find();
     }
 
     private String normalize(String value) {

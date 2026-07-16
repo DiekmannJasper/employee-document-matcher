@@ -1,6 +1,7 @@
 import { Autocomplete, TextField } from "@mui/material";
 import { useMemo } from "react";
 import type { Employee } from "../../employees/api/employeeApi";
+import { de } from "../../../shared/i18n/de";
 
 interface EmployeePickerProps {
   readonly employees: readonly Employee[];
@@ -17,13 +18,14 @@ export function EmployeePicker({ employees, selectedEmployeeId, onChange, disabl
 
   return (
     <Autocomplete
+      size="small"
       options={employees}
       value={selectedEmployee}
       onChange={(_event, value) => onChange(value?.id ?? null)}
       getOptionLabel={(employee) => `${employee.firstName} ${employee.lastName} (${employee.personnelNumber})`}
       isOptionEqualToValue={(option, value) => option.id === value.id}
       disabled={disabled}
-      renderInput={(params) => <TextField {...params} label="Mitarbeiter auswählen" size="small" />}
+      renderInput={(params) => <TextField {...params} label={de.review.employeePicker} size="small" />}
     />
   );
 }

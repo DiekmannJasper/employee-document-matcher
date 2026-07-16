@@ -1,7 +1,7 @@
 import { fetchJson } from "../../../shared/api/httpClient";
 import type { DocumentSummary } from "../../employee-documents/api/employeeDocumentApi";
 
-export type MatchStatus = "MATCHED" | "NO_MATCH" | "AMBIGUOUS";
+export type MatchStatus = "MATCHED" | "NO_MATCH" | "AMBIGUOUS" | "UNREADABLE";
 
 export type ConfidenceLevel = "HIGH" | "MEDIUM" | "LOW" | "NONE";
 
@@ -14,7 +14,9 @@ export interface PendingReview {
   readonly systemScore: ConfidenceLevel;
   readonly suggestedCategoryId: string | null;
   readonly suggestedCategoryName: string | null;
+  readonly categoryEvidence: string | null;
   readonly llmConfidence: ConfidenceLevel;
+  readonly contentType: string;
   readonly uploadedAt: string;
 }
 
@@ -27,6 +29,10 @@ export interface ConfirmMatchInput {
 
 export function fetchPendingReviews(): Promise<PendingReview[]> {
   return fetchJson<PendingReview[]>("/api/documents/pending-review");
+}
+
+export function getReviewDocumentFileUrl(documentId: string): string {
+  return `/api/documents/${documentId}/file`;
 }
 
 export function confirmMatch({ documentId, employeeId, categoryId, newCategoryName }: ConfirmMatchInput): Promise<DocumentSummary> {

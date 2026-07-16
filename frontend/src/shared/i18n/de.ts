@@ -1,0 +1,152 @@
+const common = {
+  actions: {
+    cancel: "Abbrechen",
+    close: "Schließen",
+    confirm: "Bestätigen",
+    done: "Fertig",
+    move: "Verschieben",
+    retry: "Erneut versuchen",
+  },
+  labels: {
+    all: "Alle",
+    department: "Abteilung",
+    employee: "Mitarbeiter",
+    name: "Name",
+    personnelNumber: "Personalnummer",
+  },
+} as const;
+
+export const de = {
+  locale: "de-DE",
+  app: {
+    title: "Personal Dokumenten Verwaltung",
+    errors: {
+      missingRootElement: "Root element not found",
+      missingSearchProvider: "useGlobalSearch must be used within a SearchProvider",
+      missingToastProvider: "useToast must be used within a ToastProvider",
+    },
+  },
+  common,
+  navigation: {
+    main: "Hauptnavigation",
+    open: "Navigation öffnen",
+    close: "Navigation schließen",
+    back: "Zurück",
+    employees: common.labels.employee,
+    reviews: "Prüfung",
+  },
+  states: {
+    loading: "Wird geladen…",
+    loadError: "Daten konnten nicht geladen werden.",
+  },
+  employees: {
+    title: common.labels.employee,
+    searchPlaceholder: "Mitarbeiter suchen…",
+    loading: "Mitarbeiter werden geladen…",
+    loadError: "Mitarbeiter konnten nicht geladen werden.",
+    noneFound: "Keine Mitarbeiter gefunden.",
+    noneCreated: "Es sind noch keine Mitarbeiter angelegt.",
+    columns: {
+      name: common.labels.name,
+      personnelNumber: common.labels.personnelNumber,
+      department: common.labels.department,
+    },
+    details: {
+      personnelNumber: (value: string) => `${common.labels.personnelNumber}: ${value}`,
+      department: (value: string) => `${common.labels.department}: ${value}`,
+    },
+  },
+  documents: {
+    categoriesAriaLabel: "Dokumentkategorien",
+    all: common.labels.all,
+    unassigned: "Nicht zugeordnet",
+    folder: "Ordner",
+    recordLoading: "Personalakte wird geladen…",
+    recordLoadError: "Personalakte konnte nicht geladen werden.",
+    categoryEmpty: "In dieser Kategorie liegen noch keine Dokumente vor.",
+    moveError: "Dokument konnte nicht verschoben werden.",
+    moveConfirmTitle: "Dokument verschieben?",
+    moveConfirmMessage: (filename: string, categoryName: string) =>
+      `Soll "${filename}" wirklich nach "${categoryName}" verschoben werden?`,
+    movedToCategory: (filename: string, categoryName: string) =>
+      `„${filename}“ wurde nach „${categoryName}“ verschoben.`,
+    movedToUnassigned: (filename: string) => `„${filename}“ wurde nach „Nicht zugeordnet“ verschoben.`,
+    open: "Öffnen",
+    openFor: (filename: string) => `"${filename}" öffnen`,
+    previewFor: (filename: string) => `Vorschau von "${filename}"`,
+    previewUnavailable: (formatLabel: string) => `${formatLabel}-Datei - keine Vorschau verfügbar`,
+    formatLabels: {
+      pdf: "PDF",
+      docx: "Word",
+      xml: "XML",
+      unknown: "Dokument",
+    },
+    uploadedAt: (date: string) => `Hochgeladen am ${date}`,
+  },
+  upload: {
+    title: "Dokument hochladen",
+    buttonLabel: "Manuell hochladen",
+    chooseAriaLabel: "Datei auswählen oder hierher ziehen",
+    dropZoneHint: "PDF-, Word- oder XML-Datei hierher ziehen oder klicken zum Auswählen",
+    changeFile: "Andere Datei",
+    invalidFile: "Nur PDF-, Word- (.docx) und XML-Dateien werden unterstützt.",
+    manualHint: "PDF-, Word- oder XML-Datei lokal auswählen und durch den normalen Upload-Flow analysieren.",
+    inProgress: "Datei wird hochgeladen…",
+    error: "Die Datei konnte nicht hochgeladen werden.",
+    success: (filename: string) => `„${filename}“ wurde erfolgreich hochgeladen.`,
+    assignedToEmployee: (filename: string, employeeName: string) =>
+      `„${filename}“ wurde automatisch ${employeeName} zugeordnet.`,
+    assignedToEmployeeAndCategory: (filename: string, employeeName: string, categoryName: string) =>
+      `„${filename}“ wurde automatisch ${employeeName} in „${categoryName}“ zugeordnet.`,
+    action: "Hochladen",
+  },
+  externalDocuments: {
+    title: "Externe Dokumentquelle",
+    action: "Extern importieren",
+    description: "Gemockte Schnittstelle für Dokumente aus DATEV und ähnlichen Systemen.",
+    loading: "Externe Dokumente werden geladen…",
+    loadError: "Externe Dokumente konnten nicht geladen werden.",
+    sourceLabel: "System",
+    documentLabel: "Dokument",
+    importAction: "Importieren",
+    importError: "Externes Dokument konnte nicht importiert werden.",
+    bundleSuccess: (count: number) => `${count} Dokumente wurden aus dem Paket importiert.`,
+    source: (sourceSystem: string) => `Quelle: ${sourceSystem}`,
+  },
+  review: {
+    title: "Offene Prüfung",
+    loading: "Prüfung werden geladen…",
+    loadError: "Prüfung konnten nicht geladen werden.",
+    empty: "Es liegen aktuell keine offenen Prüfung vor.",
+    employeePicker: "Mitarbeiter auswählen",
+    existingCategory: "Kategorie",
+    categoryEvidence: (evidence: string) => `Kategorie-Begründung: ${evidence}`,
+    confirmationError: "Bestätigung fehlgeschlagen.",
+    confirmationConfirmTitle: "Zuordnung bestätigen?",
+    confirmationConfirmMessage: (filename: string) =>
+      `Soll die Zuordnung für "${filename}" wirklich gespeichert werden?`,
+    confirmationSuccess: "Zuordnung bestätigt.",
+    systemScore: "Namensabgleich",
+    systemScoreHint:
+      "Wie eindeutig der Mitarbeitername im Dokumenttext gefunden wurde - ein deterministischer Abgleich gegen die Mitarbeiterliste, kein KI-Signal.",
+    aiConfidence: "Kategorie-Konfidenz",
+    aiConfidenceHint:
+      "Wie sicher der Klassifikator bei der vorgeschlagenen Dokumentkategorie ist (aktuell ein regelbasierter Mock).",
+    confidence: {
+      high: "Hoch",
+      medium: "Mittel",
+      low: "Niedrig",
+      none: "Kein Signal",
+    },
+    matchStatus: {
+      matched: "Eindeutiger Treffer",
+      ambiguous: "Mehrdeutig",
+      noMatch: "Kein Treffer",
+      unreadable: "Nicht lesbar",
+    },
+  },
+  fileSize: {
+    bytes: "B",
+    units: ["KB", "MB", "GB"],
+  },
+} as const;

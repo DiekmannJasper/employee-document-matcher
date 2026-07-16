@@ -1,8 +1,10 @@
-const UNITS = ["KB", "MB", "GB"];
+import { de } from "../i18n/de";
+
+const UNITS = de.fileSize.units;
 
 export function formatFileSize(bytes: number): string {
   if (bytes < 1024) {
-    return `${bytes} B`;
+    return `${bytes} ${de.fileSize.bytes}`;
   }
 
   let value = bytes / 1024;
