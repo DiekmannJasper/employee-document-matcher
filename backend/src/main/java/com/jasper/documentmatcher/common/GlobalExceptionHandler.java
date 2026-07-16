@@ -3,6 +3,7 @@ package com.jasper.documentmatcher.common;
 import com.jasper.documentmatcher.category.CategoryNotFoundException;
 import com.jasper.documentmatcher.document.DocumentAlreadyReviewedException;
 import com.jasper.documentmatcher.document.DocumentNotFoundException;
+import com.jasper.documentmatcher.document.ExternalDocumentNotFoundException;
 import com.jasper.documentmatcher.document.InvalidReviewRequestException;
 import com.jasper.documentmatcher.document.InvalidUploadException;
 import com.jasper.documentmatcher.employee.EmployeeNotFoundException;
@@ -31,6 +32,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DocumentNotFoundException.class)
     public ProblemDetail handleDocumentNotFound(DocumentNotFoundException exception) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, exception.getMessage());
+    }
+
+    @ExceptionHandler(ExternalDocumentNotFoundException.class)
+    public ProblemDetail handleExternalDocumentNotFound(ExternalDocumentNotFoundException exception) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, exception.getMessage());
     }
 

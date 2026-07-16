@@ -18,6 +18,7 @@ export function EmployeePicker({ employees, selectedEmployeeId, onChange, disabl
 
   return (
     <Autocomplete
+      size="small"
       options={employees}
       value={selectedEmployee}
       onChange={(_event, value) => onChange(value?.id ?? null)}

@@ -23,7 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class DocumentAnalysisServiceTest {
 
-    @Mock private PdfTextExtractor pdfTextExtractor;
+    @Mock private DocumentTextExtractorResolver textExtractorResolver;
     @Mock private PersonMatcher personMatcher;
     @Mock private DocumentClassifier documentClassifier;
     @Mock private EmployeeRepository employeeRepository;
@@ -32,7 +32,7 @@ class DocumentAnalysisServiceTest {
 
     private DocumentAnalysisService service() {
         return new DocumentAnalysisService(
-                pdfTextExtractor,
+                textExtractorResolver,
                 personMatcher,
                 documentClassifier,
                 employeeRepository,
@@ -45,7 +45,7 @@ class DocumentAnalysisServiceTest {
         var documentId = UUID.randomUUID();
         var employeeId = UUID.randomUUID();
         var categoryId = UUID.randomUUID();
-        when(pdfTextExtractor.extract(any())).thenReturn(PdfExtractionResult.success("Anna Müller"));
+        when(textExtractorResolver.extract(any(), any())).thenReturn(DocumentExtractionResult.success("Anna Müller"));
         when(employeeRepository.findAll()).thenReturn(List.of());
         when(documentCategoryRepository.findAll()).thenReturn(List.of());
         when(personMatcher.match(any(), any()))
@@ -61,7 +61,7 @@ class DocumentAnalysisServiceTest {
                         "Dokument passt zu bestehender Kategorie 'Verträge'."));
         when(documentAnalysisRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        var analysis = service().analyze(documentId, new ByteArrayInputStream(new byte[0]));
+        var analysis = service().analyze(documentId, DocumentFormat.PDF, new ByteArrayInputStream(new byte[0]));
 
         assertThat(analysis.getMatchStatus()).isEqualTo(MatchStatus.MATCHED);
         assertThat(analysis.getMatchedEmployeeId()).isEqualTo(employeeId);
@@ -75,7 +75,7 @@ class DocumentAnalysisServiceTest {
     @Test
     void persistsSuggestedNewCategoryNameWhenClassifierProposesOne() {
         var documentId = UUID.randomUUID();
-        when(pdfTextExtractor.extract(any())).thenReturn(PdfExtractionResult.success("Kündigung"));
+        when(textExtractorResolver.extract(any(), any())).thenReturn(DocumentExtractionResult.success("Kündigung"));
         when(employeeRepository.findAll()).thenReturn(List.of());
         when(documentCategoryRepository.findAll()).thenReturn(List.of());
         when(personMatcher.match(any(), any()))
@@ -91,7 +91,7 @@ class DocumentAnalysisServiceTest {
                         "Neue Kategorie 'Kündigungen' vorgeschlagen."));
         when(documentAnalysisRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        var analysis = service().analyze(documentId, new ByteArrayInputStream(new byte[0]));
+        var analysis = service().analyze(documentId, DocumentFormat.PDF, new ByteArrayInputStream(new byte[0]));
 
         assertThat(analysis.getSuggestedCategoryId()).isNull();
         assertThat(analysis.getSuggestedCategoryName()).isEqualTo("Kündigungen");
@@ -101,10 +101,11 @@ class DocumentAnalysisServiceTest {
     @Test
     void persistsUnreadableDocumentWithExplanatoryEvidenceAndSkipsClassification() {
         var documentId = UUID.randomUUID();
-        when(pdfTextExtractor.extract(any())).thenReturn(PdfExtractionResult.of(PdfExtractionStatus.ENCRYPTED));
+        when(textExtractorResolver.extract(any(), any()))
+                .thenReturn(DocumentExtractionResult.of(DocumentExtractionStatus.ENCRYPTED));
         when(documentAnalysisRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        var analysis = service().analyze(documentId, new ByteArrayInputStream(new byte[0]));
+        var analysis = service().analyze(documentId, DocumentFormat.PDF, new ByteArrayInputStream(new byte[0]));
 
         assertThat(analysis.getMatchStatus()).isEqualTo(MatchStatus.UNREADABLE);
         assertThat(analysis.getMatchedEmployeeId()).isNull();

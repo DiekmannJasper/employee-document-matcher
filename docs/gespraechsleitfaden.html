@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <title>Gesprächsleitfaden Employee Document Matcher</title>
+  <style>
+    @page { size: A4; margin: 18mm; }
+    body { font-family: Arial, Helvetica, sans-serif; color: #1f2933; font-size: 11pt; line-height: 1.45; }
+    h1 { margin: 0 0 8px; color: #102a43; font-size: 24pt; }
+    h2 { margin: 22px 0 8px; padding-top: 8px; border-top: 1px solid #d9e2ec; color: #102a43; font-size: 15pt; }
+    h3 { margin: 14px 0 6px; color: #102a43; font-size: 12pt; }
+    p { margin: 0 0 8px; }
+    ul, ol { margin: 6px 0 12px 20px; padding: 0; }
+    li { margin: 4px 0; }
+    code { padding: 1px 4px; border-radius: 3px; background: #f0f4f8; font-family: Consolas, "Courier New", monospace; font-size: 10pt; }
+    table { width: 100%; border-collapse: collapse; margin: 10px 0 16px; font-size: 10pt; }
+    th, td { border: 1px solid #bcccdc; padding: 7px 8px; vertical-align: top; }
+    th { background: #e6f6ff; text-align: left; }
+    .subtitle { color: #52606d; font-size: 12pt; margin-bottom: 18px; }
+    .box { margin: 12px 0; padding: 10px 12px; border-left: 4px solid #0b7285; background: #f0fcff; }
+    .small { color: #52606d; font-size: 9.5pt; }
+  </style>
+</head>
+<body>
+  <h1>Gesprächsleitfaden</h1>
+  <p class="subtitle">Employee Document Matcher - kompakte Demo- und Erklärungshilfe</p>
+
+  <div class="box">
+    <strong>Elevator Pitch:</strong>
+    Die Anwendung ordnet HR-Dokumente Mitarbeitenden und Dokumentordnern zu. Eindeutige Treffer werden automatisch zugeordnet, unsichere Fälle landen bewusst in der manuellen Prüfung. Alles ist deterministisch, nachvollziehbar und mit Mock-Schnittstellen demonstrierbar.
+  </div>
+
+  <h2>1. Was die Anwendung zeigt</h2>
+  <ul>
+    <li>Mitarbeiterliste mit zehn synthetischen Mitarbeitenden.</li>
+    <li>PDF-Upload für lokale Dokumente.</li>
+    <li>Gemockter externer Import, z. B. DATEV, Lexware Office, Personio, SAP SuccessFactors, sevDesk und eigene HR API.</li>
+    <li>Import einzelner PDFs sowie gemockter ZIP-/Bulk-Pakete.</li>
+    <li>Automatische Zuordnung bei eindeutigem Vollnamen-Match.</li>
+    <li>Prüfseite für uneindeutige, nicht lesbare oder nicht matchbare Dokumente.</li>
+    <li>PDF-Vorschau in der Prüfung und in der Personalakte.</li>
+    <li>Nachträgliches Verschieben zugeordneter Dokumente zwischen Ordnern.</li>
+  </ul>
+
+  <h2>2. Demo-Ablauf im Gespräch</h2>
+  <ol>
+    <li><strong>Mitarbeiterliste öffnen:</strong> Suche erklären, diese erscheint nur auf der Mitarbeiterliste.</li>
+    <li><strong>PDF hochladen:</strong> Ein Demo-PDF hochladen und Toast oben rechts zeigen.</li>
+    <li><strong>Automatch zeigen:</strong> Bei eindeutigem Namen wird das Dokument automatisch dem Mitarbeitenden zugeordnet.</li>
+    <li><strong>Extern importieren:</strong> Button "Extern importieren" öffnen, System und Dokument auswählen.</li>
+    <li><strong>ZIP-Szenario zeigen:</strong> Ein ZIP-/Bulk-Paket auswählen, das mehrere Dokumente importiert.</li>
+    <li><strong>Prüfung öffnen:</strong> Nicht eindeutige Fälle zeigen, PDF-Vorschau nutzen, Mitarbeiter/Kategorie auswählen.</li>
+    <li><strong>Bestätigung erklären:</strong> Zuordnung und Verschieben laufen immer über ein Bestätigungsmodal.</li>
+    <li><strong>Personalakte öffnen:</strong> Zugeordnetes Dokument ansehen und in anderen Ordner verschieben.</li>
+  </ol>
+
+  <h2>3. Matching-Logik kurz erklären</h2>
+  <p>
+    Das Namensmatching ist absichtlich deterministisch. Es wird kein LLM gefragt, sondern der extrahierte PDF-Text wird gegen die bekannten vollständigen Mitarbeiternamen geprüft.
+  </p>
+  <h3>Ablauf der Analyse</h3>
+  <ol>
+    <li>Das PDF wird gespeichert und anschließend erneut als Stream an die Analyse gegeben.</li>
+    <li><code>PdfTextExtractor</code> extrahiert den Text aus dem PDF.</li>
+    <li><code>DocumentAnalysisService</code> lädt alle Mitarbeitenden und baut daraus Kandidaten wie <code>Anna Müller</code>.</li>
+    <li><code>PersonMatcher</code> normalisiert PDF-Text und Namen und sucht vollständige Namen im Text.</li>
+    <li>Parallel prüft <code>RuleBasedDocumentClassifier</code>, ob der Text zu einer bekannten Dokumentkategorie passt.</li>
+    <li>Aus beiden Signalen entsteht eine Analyse: Match-Status, vorgeschlagener Mitarbeiter, Kategorie-Vorschlag, Evidenz und Review-Status.</li>
+  </ol>
+  <h3>Normalisierung beim Namensmatching</h3>
+  <p>
+    Vor dem Vergleich werden Text und Name vereinheitlicht: Unicode-Normalisierung, Kleinschreibung, Trimmen und Zusammenfassen mehrfacher Leerzeichen. Dadurch sind Groß-/Kleinschreibung und Zeilenumbrüche weniger problematisch.
+  </p>
+  <p>
+    Wichtig: Es zählt nur der vollständige Name. Ein einzelner Vorname oder Nachname reicht nicht. Zusätzlich nutzt der Matcher Unicode-Buchstabengrenzen, damit <code>Anna Müller</code> nicht versehentlich als Teil eines längeren Namens oder Wortes erkannt wird.
+  </p>
+  <table>
+    <thead>
+      <tr><th>Status</th><th>Bedeutung</th><th>Verhalten</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>MATCHED</code></td><td>Genau ein vollständiger Name gefunden.</td><td>Automatische Zuordnung zum Mitarbeitenden.</td></tr>
+      <tr><td><code>NO_MATCH</code></td><td>Kein bekannter vollständiger Name gefunden.</td><td>Manuelle Prüfung.</td></tr>
+      <tr><td><code>AMBIGUOUS</code></td><td>Mehrere bekannte Namen gefunden.</td><td>Manuelle Prüfung, keine automatische Auswahl.</td></tr>
+      <tr><td><code>UNREADABLE</code></td><td>PDF-Text konnte nicht gelesen werden.</td><td>Manuelle Prüfung ohne Matching.</td></tr>
+    </tbody>
+  </table>
+  <p>
+    Für Kategorien nutzt der Mock-Klassifikator einfache Regeln: <code>vertrag</code>, <code>gehalt</code>, <code>zeugnis</code>, <code>bescheinigung</code>, <code>kündigung</code>. Kategorien sind fachliche Ordner in der Datenbank, keine echten Dateisystemordner.
+  </p>
+  <table>
+    <thead>
+      <tr><th>Signal im Dokument</th><th>Kategorie</th><th>Beispiel</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>arbeitsvertrag</code>, <code>vertrag</code></td><td>Verträge</td><td>Arbeitsvertrag für David Schneider</td></tr>
+      <tr><td><code>gehaltsabrechnung</code>, <code>lohn</code>, <code>gehalt</code></td><td>Gehalt</td><td>Gehaltsabrechnung für Laura Hoffmann</td></tr>
+      <tr><td><code>arbeitszeugnis</code>, <code>zeugnis</code></td><td>Zeugnisse</td><td>Arbeitszeugnis für Jonas Fischer</td></tr>
+      <tr><td><code>bescheinigung</code></td><td>Bescheinigungen</td><td>Bescheinigung für Miriam Weber</td></tr>
+      <tr><td><code>kündigung</code>, <code>kuendigung</code></td><td>Kündigungen</td><td>Wird vorgeschlagen, wenn Kategorie vorhanden ist oder später angelegt wird</td></tr>
+    </tbody>
+  </table>
+  <h3>Was nach dem Matching passiert</h3>
+  <ul>
+    <li><strong>Eindeutiger Name:</strong> Das Dokument wird automatisch dem Mitarbeitenden zugeordnet. Wenn zusätzlich eine vorhandene Kategorie erkannt wurde, landet es direkt in diesem Ordner.</li>
+    <li><strong>Kein Name:</strong> Das Dokument geht in die Prüfung. Dort muss ein Mitarbeitender manuell ausgewählt werden.</li>
+    <li><strong>Mehrere Namen:</strong> Das Dokument geht in die Prüfung, weil eine automatische Entscheidung zu riskant wäre.</li>
+    <li><strong>Nicht lesbares PDF:</strong> Das Dokument geht in die Prüfung, weil ohne Text kein Matching möglich ist.</li>
+    <li><strong>Ordner ändern:</strong> Nach der Zuordnung kann das Dokument in der Personalakte in eine andere Kategorie verschoben werden, aber erst nach Bestätigung im Modal.</li>
+  </ul>
+  <p>
+    Gute Formulierung im Gespräch: "Ich unterscheide harte Identitätssignale von unsicheren Hinweisen. Ein vollständiger bekannter Name ist stark genug für Auto-Zuordnung, alles andere bleibt kontrolliert im Review."
+  </p>
+
+  <h2>4. Externe Schnittstelle erklären</h2>
+  <p>
+    Die externe Schnittstelle ist bewusst gemockt. Der Dialog simuliert verschiedene Anbieter und Dokumenttypen. Beim Import wird aber derselbe Backend-Flow verwendet wie beim lokalen Upload.
+  </p>
+  <ul>
+    <li><code>GET /api/external-documents</code>: Liste externer Dokumente.</li>
+    <li><code>POST /api/external-documents/imports</code>: Import eines Dokuments oder eines gemockten ZIP-Pakets.</li>
+    <li>ZIP-Szenarien liefern mehrere PDFs zurück und importieren sie einzeln.</li>
+    <li>Der Mock ersetzt echte OAuth-/API-Anbindung, zeigt aber die spätere Integrationsgrenze.</li>
+  </ul>
+
+  <h2>5. Sicherheits- und UX-Entscheidungen</h2>
+  <ul>
+    <li>Keine automatische Entscheidung bei Unsicherheit.</li>
+    <li>PDF-Vorschau vor manueller Bestätigung.</li>
+    <li>Bestätigungsmodal vor Speichern einer Zuordnung.</li>
+    <li>Bestätigungsmodal vor Verschieben eines Dokuments.</li>
+    <li>Toasts oben rechts für Erfolg und Fehler.</li>
+    <li>Backend speichert Dateien technisch per Storage-Key; Anzeige und Ordner kommen aus Datenbank-Metadaten.</li>
+  </ul>
+
+  <h2>6. Wichtige Dateien im Code</h2>
+  <table>
+    <thead>
+      <tr><th>Bereich</th><th>Dateien</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Upload/Import</td><td><code>DocumentUploadService</code>, <code>DocumentUploadController</code>, <code>ExternalDocumentController</code>, <code>MockExternalDocumentProvider</code></td></tr>
+      <tr><td>Analyse</td><td><code>DocumentAnalysisService</code>, <code>PdfTextExtractor</code></td></tr>
+      <tr><td>Matching</td><td><code>PersonMatcher</code>, <code>RuleBasedDocumentClassifier</code></td></tr>
+      <tr><td>Prüfung</td><td><code>DocumentReviewService</code>, <code>PendingReviewCard</code></td></tr>
+      <tr><td>Personalakte</td><td><code>EmployeeDocumentService</code>, <code>DocumentList</code></td></tr>
+      <tr><td>UI-Feedback</td><td><code>ToastProvider</code>, <code>ConfirmActionDialog</code></td></tr>
+    </tbody>
+  </table>
+
+  <h2>7. Architektur: Wie und warum ich es gebaut habe</h2>
+  <h3>Backend</h3>
+  <p>Das Backend ist eine Spring-Boot-Anwendung und fachlich nach Mitarbeitenden, Dokumenten, Kategorien, Matching, Klassifikation, Confidence und Storage gegliedert. Controller bilden die HTTP-Schnittstelle, Services enthalten die Anwendungslogik und Repositories kapseln den Datenbankzugriff.</p>
+  <table>
+    <thead><tr><th>Baustein</th><th>Verantwortung</th><th>Warum diese Trennung?</th></tr></thead>
+    <tbody>
+      <tr><td>Controller</td><td>REST-Endpunkte, Requests und Responses</td><td>HTTP bleibt dünn; Fachlogik ist separat testbar.</td></tr>
+      <tr><td>Services</td><td>Upload, Analyse, Review, Zuordnung und Verschieben</td><td>Ein zentraler Use-Case-Ablauf statt Logik in Controllern.</td></tr>
+      <tr><td>Repositories</td><td>Persistenz der fachlichen Entitäten</td><td>Datenbankzugriffe sind gekapselt.</td></tr>
+      <tr><td>Extractor Resolver</td><td>Wählt PDF-, DOCX- oder XML-Extractor</td><td>Neue Formate lassen sich ergänzen, ohne die Analyse neu zu bauen.</td></tr>
+      <tr><td>PersonMatcher</td><td>Deterministischer Namensabgleich</td><td>Erklärbar, reproduzierbar und gezielt testbar.</td></tr>
+      <tr><td>DocumentClassifier</td><td>Kategorie-Vorschlag hinter einem Interface</td><td>Regelwerk kann später durch ML oder LLM ergänzt werden.</td></tr>
+      <tr><td>DocumentStorage</td><td>Speichern und Öffnen der Binärdatei</td><td>Lokale Ablage kann später durch Cloud-Storage oder ein DMS ersetzt werden.</td></tr>
+    </tbody>
+  </table>
+  <p>Manueller Upload und externer Import laufen nach der Quelle in dieselbe Ingestion-Pipeline. Dadurch gibt es nur eine Validierung, Extraktion, Matching- und Zuordnungslogik. Die Anbieter-Demo ist ein Adapter vor demselben Kernprozess.</p>
+  <h3>Frontend</h3>
+  <p>Das React-Frontend ist feature-orientiert aufgebaut. Jedes Feature bündelt API-Zugriff, Hooks und Komponenten, etwa Dokument-Upload, Review oder Personalakte. Seiten komponieren diese Features; gemeinsam genutzte Bausteine wie App-Shell, Toasts, PDF-Vorschau und Bestätigungsdialog liegen unter <code>shared</code>.</p>
+  <ul>
+    <li><strong>API-Module:</strong> typisierte Kommunikation mit dem Backend.</li>
+    <li><strong>Hooks:</strong> Laden und Ändern von Serverdaten sowie Toast- und Cache-Verhalten.</li>
+    <li><strong>Komponenten:</strong> Darstellung und lokale Interaktion.</li>
+    <li><strong>Seiten:</strong> Mitarbeiterliste, Personalakte und Review Queue als Arbeitsbereiche.</li>
+    <li><strong>Shared:</strong> wiederverwendbare UX-Muster für konsistente Bestätigungen und Rückmeldungen.</li>
+  </ul>
+  <p>Bestätigungsmodale schützen fachlich relevante Änderungen, weil eine falsche Zuordnung bei Personaldokumenten schwerer wiegt als ein zusätzlicher Klick. Toasts bestätigen das Ergebnis, ersetzen aber nicht die bewusste Entscheidung vor der Aktion.</p>
+  <h3>Daten- und Dateimodell</h3>
+  <p>Die physische Datei und ihre fachliche Einordnung sind getrennt. Die Datei liegt unter einem technischen Storage-Key. Originalname, Mitarbeiter-ID, Kategorie-ID, Status und Analyse liegen als Metadaten in der Datenbank. Ein Ordnerwechsel ändert deshalb die Kategoriebeziehung und verschiebt keine Datei physisch.</p>
+
+  <h2>8. Präsentationsskript für etwa 10 Minuten</h2>
+  <table>
+    <thead><tr><th>Zeit</th><th>Inhalt</th><th>Kernaussage</th></tr></thead>
+    <tbody>
+      <tr><td>0:00-1:00</td><td>Problem und Ziel</td><td>Personaldokumente sicher zuordnen; Unsicherheit sichtbar machen.</td></tr>
+      <tr><td>1:00-3:00</td><td>Mitarbeiterliste und eindeutiger Upload</td><td>Eindeutiger Vollname führt zur automatischen Zuordnung.</td></tr>
+      <tr><td>3:00-5:00</td><td>Uneindeutigen Fall prüfen</td><td>Vorschau, Auswahl und explizite Bestätigung statt riskantem Raten.</td></tr>
+      <tr><td>5:00-6:30</td><td>Externer Import und ZIP-Mock</td><td>Connector-Grenze demonstriert; Verarbeitung bleibt identisch.</td></tr>
+      <tr><td>6:30-7:30</td><td>Personalakte und Ordnerwechsel</td><td>Metadatenbasierte Ablage und kontrollierte Korrektur.</td></tr>
+      <tr><td>7:30-9:00</td><td>Architektur und Tests</td><td>Klare Verantwortlichkeiten und austauschbare Schnittstellen.</td></tr>
+      <tr><td>9:00-10:00</td><td>Grenzen und Roadmap</td><td>MVP bewusst klein; produktives Zielbild priorisiert.</td></tr>
+    </tbody>
+  </table>
+  <div class="box"><strong>Guter Einstieg:</strong> „Ich zeige zuerst den fachlichen Kernfluss. Danach erkläre ich, wie ich ihn technisch getrennt habe und an welchen Stellen ich für eine produktive Lösung weiterbauen würde.“</div>
+
+  <h2>9. Tests kurz erklären</h2>
+  <p>
+    Backend-Tests sind Service-, Controller-, Repository- und Integrations-orientiert. Frontend-Tests prüfen Komponenten aus Nutzersicht mit Vitest und React Testing Library.
+  </p>
+  <ul>
+    <li><code>PersonMatcherTest</code>: eindeutige, keine und mehrdeutige Namen.</li>
+    <li><code>RuleBasedDocumentClassifierTest</code>: Keyword-basierte Kategorien.</li>
+    <li><code>DocumentUploadServiceTest</code>: Upload, Analyse und Auto-Zuordnung.</li>
+    <li><code>ExternalDocumentControllerTest</code>: Mock-Import externer Dokumente.</li>
+    <li><code>DocumentReviewServiceTest</code>: manuelle Bestätigung und PDF-Vorschau.</li>
+    <li><code>EmployeeDetailPage.test.tsx</code>: Ordnerfilter und Verschieben mit Modal.</li>
+    <li><code>ExternalImportDialog.test.tsx</code>: System-/Dokument-Dropdowns und Import.</li>
+    <li><code>ReviewPage.test.tsx</code>: Prüffall-Auswahl und Bestätigungsmodal.</li>
+  </ul>
+
+  <h2>10. Typische Rückfragen und gute Antworten</h2>
+  <table>
+    <thead><tr><th>Rückfrage</th><th>Kompakte Antwort</th></tr></thead>
+    <tbody>
+      <tr><td>Warum kein unscharfes oder KI-basiertes Personenmatching?</td><td>Für den MVP ist ein falscher positiver Treffer riskanter als ein Review-Fall. Der Vollnamen-Match ist nachvollziehbar. Produktiv würde ich starke Identifikatoren, Konfliktregeln und kalibrierte Confidence ergänzen.</td></tr>
+      <tr><td>Warum reicht der Name produktiv nicht?</td><td>Namen können doppelt, geändert oder per OCR falsch erkannt sein. Zusätzlich braucht es etwa Personalnummer plus Mandant, Geburtsdatum, historische Namen und harte Ausschlussregeln.</td></tr>
+      <tr><td>Warum Spring Boot?</td><td>Es bietet einen klaren REST-, Service- und Repository-Stack, Validierung, Transaktionen und gute Testunterstützung. Für diese Workflow-Anwendung ist das pragmatisch.</td></tr>
+      <tr><td>Warum React und feature-orientierte Struktur?</td><td>Upload, Review und Personalakte entwickeln sich unabhängig. Feature-Module halten API, Zustand und UI nah beieinander.</td></tr>
+      <tr><td>Wie würdest du echte Anbieter anbinden?</td><td>Je Anbieter ein Adapter hinter einem Connector-Interface, mit OAuth und Secrets, Delta-Cursor, Idempotenz, Rate-Limits, Retry und standardisiertem Importergebnis.</td></tr>
+      <tr><td>Wie verhinderst du doppelte Dokumente?</td><td>Produktiv durch Inhalts-Hash, externe Dokument-ID sowie Mitarbeiter, Dokumenttyp, Zeitraum und Version. Korrekturen werden versioniert statt überschrieben.</td></tr>
+      <tr><td>Was passiert bei 1.000 Dokumenten im ZIP?</td><td>Ein Import-Job entpackt geschützt, legt Einzelaufträge in eine Queue und liefert Fortschritt sowie Teilergebnisse. Das gehört nicht synchron in einen HTTP-Request.</td></tr>
+      <tr><td>Wie würdest du Sicherheit ergänzen?</td><td>SSO/MFA, Rollen und Mandanten, Verschlüsselung, Malware-Scan, Quarantäne, keine sensiblen Logs, kurzlebige Downloads und unveränderbares Audit-Log.</td></tr>
+      <tr><td>Wo liegt aktuell die größte Grenze?</td><td>Es ist ein lokaler Demo-MVP ohne Auth, OCR, produktive Connectoren und asynchrone Verarbeitung. Diese Grenzen stelle ich bewusst nicht als Produktionsreife dar.</td></tr>
+      <tr><td>Wie wurde KI eingesetzt?</td><td>KI unterstützte Planung und Umsetzung. Entscheidungen, Code und Tests wurden geprüft. In der Laufzeit entscheidet aktuell kein generatives Modell über die Mitarbeiterzuordnung.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>11. Bekannte Hinweise</h2>
+  <ul>
+    <li>Das Backend muss nach Codeänderungen frisch gebaut und gestartet werden, sonst liefern neue Endpoints <code>404</code>.</li>
+    <li>In dieser Umgebung war kein Maven/Wrapper verfügbar; Frontend-Tests und Build wurden ausgeführt.</li>
+    <li>Externe Anbieter sind bewusst Mock-Daten, keine echten DATEV-/Lexware-/Personio-Verbindungen.</li>
+    <li>OCR, Authentifizierung, echte Cloud-Ablage und produktive API-Credentials sind Out of Scope des MVP.</li>
+  </ul>
+
+  <h2>12. Erweiterungen bei mehr Zeit</h2>
+  <p>
+    Diese Punkte würde ich im Gespräch als bewusste nächste Schritte nennen. Der MVP zeigt den Kernfluss, die folgenden Themen wären die sinnvolle Produkt- und Produktionshärtung.
+  </p>
+  <ul>
+    <li><strong>Echte Anbieter-Integrationen:</strong> DATEV, Lexware Office, Personio, SAP SuccessFactors oder eigene HR APIs nicht nur mocken, sondern über echte Adapter anbinden.</li>
+    <li><strong>OAuth und Credential Handling:</strong> sichere Verbindung externer Systeme mit Token-Refresh, Rollenrechten und Mandantentrennung.</li>
+    <li><strong>ZIP- und Bulk-Import produktiv machen:</strong> echte ZIP-Dateien entgegennehmen, entpacken, validieren und jedes PDF einzeln verarbeiten.</li>
+    <li><strong>Import-Protokoll:</strong> pro Import anzeigen, welche Dokumente erfolgreich zugeordnet wurden, welche in die Prüfung gingen und welche fehlerhaft waren.</li>
+    <li><strong>OCR für Scans:</strong> bildbasierte oder gescannte PDFs per OCR analysieren, statt sie nur als <code>UNREADABLE</code> zu markieren.</li>
+    <li><strong>Bessere Kategorieverwaltung:</strong> neue Ordner direkt im UI anlegen, umbenennen, zusammenführen und mit Regeln versehen.</li>
+    <li><strong>Lernende Klassifikation:</strong> bestätigte Nutzerentscheidungen nutzen, um Kategorie-Regeln oder ein späteres ML/LLM-Modul zu verbessern.</li>
+    <li><strong>Audit Trail:</strong> dokumentieren, wer wann welches Dokument hochgeladen, importiert, bestätigt oder verschoben hat.</li>
+    <li><strong>Rechte und Rollen:</strong> z. B. HR Admin, Reviewer und Nur-Lesen-Rollen mit Zugriffsbeschränkung auf Personalakten.</li>
+    <li><strong>Produktive Dateiablage:</strong> lokales Storage durch S3/Azure Blob/SharePoint oder ein DMS ersetzen.</li>
+    <li><strong>Mehr Tests auf End-to-End-Ebene:</strong> Upload/Import bis zur finalen Personalakte über echte Datenbank und Browser-Flow testen.</li>
+    <li><strong>Monitoring und Fehlerbehandlung:</strong> Import-Jobs, Queue-Retry, Dead-Letter-Fälle und technische Alarme ergänzen.</li>
+  </ul>
+
+  <h3>Priorisierte Roadmap aus den zusätzlichen Ideen</h3>
+  <table>
+    <thead><tr><th>Phase</th><th>Schwerpunkt</th><th>Konkrete Erweiterungen</th></tr></thead>
+    <tbody>
+      <tr><td>1 - sicherer Prototyp</td><td>Fehlzuordnungen vermeiden</td><td>Personalnummer, Geburtsdatum, historische Namen, harte Konflikte, Audit-Log, Login und Rollen.</td></tr>
+      <tr><td>2 - robuste Importplattform</td><td>Mengen und Formate</td><td>Echter Multi-/ZIP-Upload, OCR, zusätzliche Formate, Jobs, Teilerfolge, Duplikate, Versionierung, Virenscan und Quarantäne.</td></tr>
+      <tr><td>3 - Integration und Self-Service</td><td>Echte Prozesse</td><td>Connector-Framework, erster realer Anbieter, SSO/MFA, Mitarbeiterportal, Benachrichtigungen und Freigaben.</td></tr>
+      <tr><td>4 - intelligente Automatisierung</td><td>Qualität steigern</td><td>Mehrmerkmal-Confidence, erklärbare KI-Extraktion, Anomalien, Seitentrennung, Qualitätsdashboard und Drift-Monitoring.</td></tr>
+    </tbody>
+  </table>
+  <p>Die wichtigste Produktkennzahl wäre nicht die maximale Auto-Zuordnungsquote, sondern eine möglichst niedrige Fehlzuordnungsquote. Gerade bei Gehalts-, Gesundheits- und Vertragsdokumenten hat Sicherheit Vorrang vor maximaler Automatisierung.</p>
+
+  <h2>13. Abschluss und Selbstreflexion</h2>
+  <p>Der Prototyp löst den Kern der Aufgabe und zeigt den Weg vom Eingang über Analyse und Review bis zur Personalakte. Erweiterbarkeit ist dort vorbereitet, wo Varianten realistisch sind: Quellen, Dateiformate, Klassifikation und Storage. Vor einem Produktiveinsatz würde ich zuerst Identität, Berechtigungen, Audit und robuste Hintergrundverarbeitung härten.</p>
+
+  <div class="box">
+    <strong>Schlusssatz fürs Gespräch:</strong>
+    "Ich habe den MVP so gebaut, dass die kritische Entscheidung erklärbar bleibt: sichere automatische Zuordnung nur bei eindeutigem Treffer, ansonsten Review mit Vorschau und expliziter Bestätigung."
+  </div>
+
+  <p class="small">Stand: 16.07.2026 · Aktueller Prototyp plus ergänztes produktives Zielbild</p>
+</body>
+</html>

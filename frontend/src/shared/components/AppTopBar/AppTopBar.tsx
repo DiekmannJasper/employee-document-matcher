@@ -1,5 +1,6 @@
 import MenuIcon from "@mui/icons-material/Menu";
 import { AppBar, Box, IconButton, Toolbar, Typography } from "@mui/material";
+import { GlobalExternalImportButton } from "../GlobalExternalImportButton/GlobalExternalImportButton";
 import { GlobalSearchField } from "../GlobalSearchField/GlobalSearchField";
 import { GlobalUploadButton } from "../GlobalUploadButton/GlobalUploadButton";
 import { de } from "../../i18n/de";
@@ -8,9 +9,17 @@ interface AppTopBarProps {
   readonly mobileNavOpen: boolean;
   readonly onToggleMobileNavigation: () => void;
   readonly onUploadClick: () => void;
+  readonly onExternalImportClick: () => void;
+  readonly showSearch: boolean;
 }
 
-export function AppTopBar({ mobileNavOpen, onToggleMobileNavigation, onUploadClick }: AppTopBarProps) {
+export function AppTopBar({
+  mobileNavOpen,
+  onToggleMobileNavigation,
+  onUploadClick,
+  onExternalImportClick,
+  showSearch,
+}: AppTopBarProps) {
   return (
     <AppBar
       position="static"
@@ -36,7 +45,8 @@ export function AppTopBar({ mobileNavOpen, onToggleMobileNavigation, onUploadCli
           {de.app.title}
         </Typography>
         <Box sx={{ flexGrow: 1 }} />
-        <GlobalSearchField />
+        {showSearch && <GlobalSearchField />}
+        <GlobalExternalImportButton onClick={onExternalImportClick} />
         <GlobalUploadButton onClick={onUploadClick} />
       </Toolbar>
     </AppBar>

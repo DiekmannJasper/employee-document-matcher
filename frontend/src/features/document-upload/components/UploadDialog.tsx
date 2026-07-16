@@ -15,7 +15,7 @@ import { useRef, useState } from "react";
 import { ApiError } from "../../../shared/api/httpClient";
 import { de } from "../../../shared/i18n/de";
 import { useUploadDocument } from "../hooks/useUploadDocument";
-import { isPdfFile } from "../utils/isPdfFile";
+import { isSupportedDocumentFile } from "../utils/isSupportedDocumentFile";
 import { FileDropZone } from "./FileDropZone";
 import { SelectedFileSummary } from "./SelectedFileSummary";
 
@@ -35,7 +35,7 @@ export function UploadDialog({ open, onClose }: UploadDialogProps) {
   const abortControllerRef = useRef<AbortController | null>(null);
   const uploadMutation = useUploadDocument();
 
-  const isValidPdf = selectedFile ? isPdfFile(selectedFile) : true;
+  const isValidFile = selectedFile ? isSupportedDocumentFile(selectedFile) : true;
 
   function handleFileSelected(file: File) {
     uploadMutation.reset();
@@ -49,7 +49,7 @@ export function UploadDialog({ open, onClose }: UploadDialogProps) {
   }
 
   function handleUpload() {
-    if (!selectedFile || !isPdfFile(selectedFile)) {
+    if (!selectedFile || !isSupportedDocumentFile(selectedFile)) {
       return;
     }
 
@@ -88,6 +88,12 @@ export function UploadDialog({ open, onClose }: UploadDialogProps) {
       </DialogTitle>
       <DialogContent>
         <Stack spacing={2}>
+          <Stack spacing={1}>
+            <Typography variant="subtitle2">{de.upload.title}</Typography>
+            <Typography variant="body2" color="text.secondary">
+              {de.upload.manualHint}
+            </Typography>
+          </Stack>
           {!selectedFile && <FileDropZone onFileSelected={handleFileSelected} />}
 
           {selectedFile && (
@@ -98,7 +104,7 @@ export function UploadDialog({ open, onClose }: UploadDialogProps) {
             />
           )}
 
-          {selectedFile && !isValidPdf && <Alert severity="error">{de.upload.invalidFile}</Alert>}
+          {selectedFile && !isValidFile && <Alert severity="error">{de.upload.invalidFile}</Alert>}
 
           {uploadMutation.isPending && (
             <Stack spacing={1}>
@@ -129,7 +135,7 @@ export function UploadDialog({ open, onClose }: UploadDialogProps) {
           </Button>
         )}
         {!uploadMutation.isPending && !uploadMutation.isSuccess && (
-          <Button onClick={handleUpload} variant="contained" disabled={!selectedFile || !isValidPdf}>
+          <Button onClick={handleUpload} variant="contained" disabled={!selectedFile || !isValidFile}>
             {de.upload.action}
           </Button>
         )}

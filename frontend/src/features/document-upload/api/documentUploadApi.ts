@@ -7,6 +7,8 @@ export interface DocumentUploadResponse {
   readonly originalFilename: string;
   readonly status: DocumentStatus;
   readonly uploadedAt: string;
+  readonly assignedEmployeeName: string | null;
+  readonly assignedCategoryName: string | null;
 }
 
 export function uploadDocument(file: File, signal: AbortSignal): Promise<DocumentUploadResponse> {

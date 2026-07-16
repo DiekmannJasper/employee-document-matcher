@@ -1,0 +1,1163 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <title>Employee Document Matcher - Code- und Ablaufdokumentation</title>
+    <style>
+      @page {
+        size: A4;
+        margin: 16mm 14mm;
+      }
+
+      :root {
+        color-scheme: light;
+        --ink: #172033;
+        --muted: #586174;
+        --line: #cfd6e4;
+        --soft: #f4f7fb;
+        --panel: #ffffff;
+        --blue: #2563eb;
+        --green: #0f766e;
+        --amber: #b45309;
+        --red: #b91c1c;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: #ffffff;
+        color: var(--ink);
+        font-family:
+          "Segoe UI",
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          sans-serif;
+        font-size: 10.5pt;
+        line-height: 1.48;
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0 0 8px;
+        line-height: 1.2;
+      }
+
+      h1 {
+        font-size: 28pt;
+        letter-spacing: 0;
+      }
+
+      h2 {
+        margin-top: 24px;
+        padding-bottom: 5px;
+        border-bottom: 1px solid var(--line);
+        font-size: 16pt;
+      }
+
+      h3 {
+        margin-top: 16px;
+        font-size: 12pt;
+      }
+
+      p {
+        margin: 0 0 8px;
+      }
+
+      code {
+        padding: 1px 4px;
+        border-radius: 4px;
+        background: #eef2ff;
+        color: #1e3a8a;
+        font-family: "Cascadia Mono", Consolas, monospace;
+        font-size: 9pt;
+      }
+
+      ul,
+      ol {
+        margin: 6px 0 10px 18px;
+        padding: 0;
+      }
+
+      li {
+        margin: 3px 0;
+      }
+
+      table {
+        width: 100%;
+        margin: 8px 0 14px;
+        border-collapse: collapse;
+        page-break-inside: avoid;
+      }
+
+      th,
+      td {
+        padding: 7px 8px;
+        border: 1px solid var(--line);
+        vertical-align: top;
+        text-align: left;
+      }
+
+      th {
+        background: var(--soft);
+        font-weight: 650;
+      }
+
+      .cover {
+        min-height: 210mm;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        page-break-after: always;
+      }
+
+      .eyebrow {
+        margin-bottom: 12px;
+        color: var(--blue);
+        font-size: 10pt;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .subtitle {
+        max-width: 620px;
+        margin-top: 14px;
+        color: var(--muted);
+        font-size: 14pt;
+      }
+
+      .meta {
+        margin-top: 34px;
+        color: var(--muted);
+      }
+
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin: 14px 0;
+      }
+
+      .card {
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        page-break-inside: avoid;
+      }
+
+      .card h3 {
+        margin-top: 0;
+      }
+
+      .note {
+        padding: 10px 12px;
+        border-left: 4px solid var(--blue);
+        background: var(--soft);
+      }
+
+      .talk-track {
+        padding: 12px 14px;
+        border: 1px solid #bfdbfe;
+        border-radius: 8px;
+        background: #eff6ff;
+        page-break-inside: avoid;
+      }
+
+      .talk-track strong {
+        color: #1d4ed8;
+      }
+
+      .decision {
+        padding: 10px 12px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #ffffff;
+        page-break-inside: avoid;
+      }
+
+      .decision + .decision {
+        margin-top: 8px;
+      }
+
+      .diagram {
+        margin: 12px 0 18px;
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fbfdff;
+        page-break-inside: avoid;
+      }
+
+      .diagram-title {
+        margin-bottom: 10px;
+        font-weight: 700;
+      }
+
+      .flow {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 8px;
+        align-items: stretch;
+      }
+
+      .flow.three {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .flow.four {
+        grid-template-columns: repeat(4, 1fr);
+      }
+
+      .box {
+        min-height: 58px;
+        padding: 8px;
+        border: 1px solid #b8c4d8;
+        border-radius: 7px;
+        background: #ffffff;
+        position: relative;
+      }
+
+      .box strong {
+        display: block;
+        margin-bottom: 3px;
+        color: #111827;
+      }
+
+      .box small {
+        display: block;
+        color: var(--muted);
+        font-size: 8.5pt;
+      }
+
+      .box:not(:last-child)::after {
+        content: "→";
+        position: absolute;
+        right: -14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--blue);
+        font-weight: 800;
+        z-index: 2;
+      }
+
+      .lane {
+        display: grid;
+        grid-template-columns: 110px 1fr;
+        gap: 8px;
+        margin: 8px 0;
+      }
+
+      .lane-label {
+        padding: 8px;
+        border-radius: 7px;
+        background: #e0f2fe;
+        color: #075985;
+        font-weight: 700;
+      }
+
+      .lane-content {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+      }
+
+      .pill {
+        display: inline-block;
+        margin: 2px 3px 2px 0;
+        padding: 2px 7px;
+        border-radius: 999px;
+        background: #e8eef9;
+        color: #334155;
+        font-size: 8.5pt;
+        font-weight: 650;
+      }
+
+      .status-high {
+        color: var(--green);
+      }
+
+      .status-medium {
+        color: var(--amber);
+      }
+
+      .status-risk {
+        color: var(--red);
+      }
+
+      .page-break {
+        page-break-before: always;
+      }
+    </style>
+  </head>
+  <body>
+    <section class="cover">
+      <div class="eyebrow">Employee Document Matcher</div>
+      <h1>Code- und Ablaufdokumentation</h1>
+      <p class="subtitle">
+        Erklärung des Frontends, Backends, Datenmodells und der wichtigsten Abläufe vom PDF-Upload bis zur bestätigten Zuordnung.
+      </p>
+      <div class="meta">
+        <p><strong>Projekt:</strong> personalUpload</p>
+        <p><strong>Stand:</strong> 14. Juli 2026</p>
+        <p><strong>Ziel:</strong> verständliche technische Übersicht für Code Review, Demo und Übergabe</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>0. Gesprächsleitfaden: Wie ich die Lösung erklären würde</h2>
+      <div class="talk-track">
+        <p>
+          <strong>Kurzfassung für den Einstieg:</strong> Ich habe die Aufgabe als kontrollierten HR-Dokumentenfluss verstanden: Ein PDF wird hochgeladen, technisch analysiert, einem bekannten Mitarbeiter vorgeschlagen und erst nach menschlicher Prüfung endgültig abgelegt. Mir war wichtig, dass die Lösung nicht magisch wirkt, sondern erklärbar, testbar und bei Unsicherheit vorsichtig bleibt.
+        </p>
+      </div>
+
+      <h3>Meine wichtigsten Überlegungen</h3>
+      <div class="decision">
+        <p><strong>1. Erst die sichere Kernstrecke lösen.</strong></p>
+        <p>
+          Die Aufgabe dreht sich im Kern um die Frage: Kann ein Dokument einem von zehn bekannten Mitarbeitern zugeordnet werden? Deshalb habe ich zuerst Upload, Textextraktion, Namensmatching, Review und Bestätigung gebaut. Alles andere ist ergänzend.
+        </p>
+      </div>
+      <div class="decision">
+        <p><strong>2. Keine automatische finale Entscheidung.</strong></p>
+        <p>
+          Auch wenn der Matcher genau einen Namen findet, bleibt das Ergebnis ein Vorschlag. In einem HR-Kontext wäre eine falsche Ablage schlimmer als ein zusätzlicher Klick. Deshalb gibt es den Status <code>PENDING</code> und die Review-Seite.
+        </p>
+      </div>
+      <div class="decision">
+        <p><strong>3. Deterministisches Matching statt LLM-Raten.</strong></p>
+        <p>
+          Die Mitarbeiterliste ist bekannt und klein. Daher ist ein regelbasiertes Vollnamen-Matching zuverlässiger, günstiger, schneller und besser erklärbar als ein LLM. Ein LLM kann bei offenen Inhaltsfragen helfen, aber nicht bei einer kontrollierten Identitätsentscheidung.
+        </p>
+      </div>
+      <div class="decision">
+        <p><strong>4. Architektur klein halten, aber mit realistischen Grenzen.</strong></p>
+        <p>
+          Ich habe einen modularen Monolithen gewählt, weil er für diese Größe verständlich und transaktional einfach bleibt. Gleichzeitig gibt es Ports wie <code>DocumentStorage</code> und <code>DocumentClassifier</code>, damit Storage oder Klassifikation später austauschbar sind.
+        </p>
+      </div>
+      <div class="decision">
+        <p><strong>5. Transparenz über MVP-Grenzen.</strong></p>
+        <p>
+          Authentifizierung, OCR, Virenscan, Cloud Storage und echte Retention Policies sind bewusst nicht eingebaut. Ich würde sie im Gespräch offen als Produktionsanforderungen benennen, statt so zu tun, als wären sie im MVP versteckt gelöst.
+        </p>
+      </div>
+
+      <h3>So kann man es im Gespräch erzählen</h3>
+      <p>
+        “Ich habe die Lösung bewusst konservativ aufgebaut. Das System soll nicht einfach behaupten, ein Dokument gehöre zu jemandem, sondern zeigen, warum es diesen Vorschlag macht. Wenn genau ein vollständiger Name gefunden wird, gibt es einen Vorschlag. Wenn kein Name oder mehrere Namen gefunden werden, bleibt es ein manueller Prüffall. Dadurch kann ich jeden Zustand erklären und testen.”
+      </p>
+      <p>
+        “KI habe ich nicht grundsätzlich ausgeschlossen. Ich habe sie nur dort eingeordnet, wo sie fachlich Sinn ergibt: bei semantischen Kategorie-Vorschlägen. Bei der Mitarbeiterzuordnung ist die Aufgabe dagegen ein kontrollierter Abgleich gegen bekannte Stammdaten. Dafür ist deterministische Logik die bessere Wahl.”
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Frage im Gespräch</th>
+            <th>Antwortgedanke</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Warum Spring Boot und React?</td>
+            <td>Solide Standardtechnologien, gut testbar, klare REST-Grenze, schnell erklärbar.</td>
+          </tr>
+          <tr>
+            <td>Warum PostgreSQL statt alles im Speicher?</td>
+            <td>Dokumentstatus, Review-Status und Zuordnungen sind fachliche Daten und sollten persistent und nachvollziehbar sein.</td>
+          </tr>
+          <tr>
+            <td>Warum PDF-Dateien nicht in der DB?</td>
+            <td>Die DB speichert Metadaten. Die Dateiablage ist über einen Storage-Port gekapselt und kann später durch S3 oder ähnliches ersetzt werden.</td>
+          </tr>
+          <tr>
+            <td>Warum Review trotz Match?</td>
+            <td>HR-Dokumente sind sensibel. Die App soll unterstützen, nicht unbeaufsichtigt entscheiden.</td>
+          </tr>
+          <tr>
+            <td>Warum kein LLM für Namen?</td>
+            <td>Weil die erlaubten Namen bekannt sind. Ein erklärbarer Vollnamen-Abgleich ist hier sicherer als probabilistische Interpretation.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>1. Kurzüberblick</h2>
+      <p>
+        Die Anwendung nimmt PDF-Dokumente entgegen, extrahiert daraus Text, sucht deterministisch nach bekannten Mitarbeitern und schlägt optional eine Dokumentkategorie vor. Ein Dokument wird erst nach menschlicher Bestätigung einem Mitarbeiter und optional einer Kategorie zugeordnet.
+      </p>
+
+      <div class="summary-grid">
+        <div class="card">
+          <h3>Frontend</h3>
+          <p>React, TypeScript, Vite, Material UI, React Router und TanStack Query.</p>
+          <span class="pill">Dashboard</span>
+          <span class="pill">Mitarbeiterdetail</span>
+          <span class="pill">Prüfung</span>
+          <span class="pill">Upload-Dialog</span>
+        </div>
+        <div class="card">
+          <h3>Backend</h3>
+          <p>Java 21, Spring Boot, PostgreSQL, Flyway, JPA und PDFBox.</p>
+          <span class="pill">REST Controller</span>
+          <span class="pill">Services</span>
+          <span class="pill">Repositories</span>
+          <span class="pill">Storage Port</span>
+        </div>
+        <div class="card">
+          <h3>Matching</h3>
+          <p>Der PDF-Text wird gegen die zehn bekannten Mitarbeiter geprüft.</p>
+          <span class="pill">MATCHED</span>
+          <span class="pill">NO_MATCH</span>
+          <span class="pill">AMBIGUOUS</span>
+          <span class="pill">UNREADABLE</span>
+        </div>
+        <div class="card">
+          <h3>Review</h3>
+          <p>Alle Analysen landen als Prüffall und werden erst durch den Benutzer bestätigt.</p>
+          <span class="pill">PENDING</span>
+          <span class="pill">CONFIRMED</span>
+          <span class="pill">REJECTED modelliert</span>
+        </div>
+      </div>
+
+      <div class="diagram">
+        <div class="diagram-title">Systemübersicht</div>
+        <div class="flow four">
+          <div class="box">
+            <strong>Browser</strong>
+            <small>React SPA mit Upload, Suche und Review</small>
+          </div>
+          <div class="box">
+            <strong>REST API</strong>
+            <small>Spring Controller unter /api/...</small>
+          </div>
+          <div class="box">
+            <strong>Domain Services</strong>
+            <small>Upload, Analyse, Matching, Review</small>
+          </div>
+          <div class="box">
+            <strong>Persistenz</strong>
+            <small>PostgreSQL plus lokale PDF-Ablage</small>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>2. Backend-Architektur</h2>
+      <p>
+        Das Backend ist ein modularer Spring-Boot-Monolith. Die Pakete sind nach fachlichen Bereichen geschnitten: <code>employee</code>, <code>document</code>, <code>matching</code>, <code>classification</code>, <code>category</code>, <code>confidence</code> und <code>storage</code>.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Bereich</th>
+            <th>Wichtige Klassen</th>
+            <th>Aufgabe</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Upload</td>
+            <td><code>DocumentUploadController</code>, <code>DocumentUploadService</code>, <code>DocumentUploadValidator</code></td>
+            <td>Nimmt genau eine PDF-Datei entgegen, validiert sie, speichert die Bytes und startet die Analyse.</td>
+          </tr>
+          <tr>
+            <td>Analyse</td>
+            <td><code>DocumentAnalysisService</code>, <code>PdfTextExtractor</code></td>
+            <td>Extrahiert PDF-Text, berechnet Matching-Status und Kategorie-Vorschlag.</td>
+          </tr>
+          <tr>
+            <td>Matching</td>
+            <td><code>PersonMatcher</code>, <code>MatchCandidate</code>, <code>PersonMatchResult</code></td>
+            <td>Vergleicht normalisierten Text mit den vollständigen Namen der Mitarbeiter.</td>
+          </tr>
+          <tr>
+            <td>Klassifikation</td>
+            <td><code>DocumentClassifier</code>, <code>RuleBasedDocumentClassifier</code></td>
+            <td>Schlägt anhand einfacher Regeln eine Dokumentkategorie vor.</td>
+          </tr>
+          <tr>
+            <td>Review</td>
+            <td><code>DocumentReviewController</code>, <code>DocumentReviewService</code></td>
+            <td>Liefert offene Prüfung und bestätigt die endgültige Zuordnung.</td>
+          </tr>
+          <tr>
+            <td>Storage</td>
+            <td><code>DocumentStorage</code>, <code>LocalDocumentStorage</code></td>
+            <td>Kapselt die PDF-Ablage hinter einem Port, damit später Cloud Storage möglich wäre.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Backend-Schichten</h3>
+      <div class="diagram">
+        <div class="lane">
+          <div class="lane-label">Controller</div>
+          <div class="lane-content">
+            <div class="box"><strong>Upload</strong><small>POST /api/documents</small></div>
+            <div class="box"><strong>Review</strong><small>GET pending, POST confirm</small></div>
+            <div class="box"><strong>Employees</strong><small>GET list/detail</small></div>
+            <div class="box"><strong>Categories</strong><small>GET categories</small></div>
+          </div>
+        </div>
+        <div class="lane">
+          <div class="lane-label">Services</div>
+          <div class="lane-content">
+            <div class="box"><strong>UploadService</strong><small>Transaktion und Cleanup</small></div>
+            <div class="box"><strong>AnalysisService</strong><small>PDF, Match, Category</small></div>
+            <div class="box"><strong>ReviewService</strong><small>Bestätigung</small></div>
+            <div class="box"><strong>EmployeeService</strong><small>Stammdaten</small></div>
+          </div>
+        </div>
+        <div class="lane">
+          <div class="lane-label">Daten</div>
+          <div class="lane-content">
+            <div class="box"><strong>documents</strong><small>Metadaten und Status</small></div>
+            <div class="box"><strong>document_analyses</strong><small>Analyse und Review</small></div>
+            <div class="box"><strong>employees</strong><small>10 Demo-Personen</small></div>
+            <div class="box"><strong>storage</strong><small>PDF-Dateien lokal</small></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page-break">
+      <h2>3. Backend-Ablauf: PDF-Upload</h2>
+      <p>
+        Der wichtigste Pfad beginnt im Frontend-Uploaddialog und endet im Backend mit zwei gespeicherten Datensätzen: einem Dokument in <code>documents</code> und einer Analyse in <code>document_analyses</code>.
+      </p>
+
+      <div class="diagram">
+        <div class="diagram-title">Ablaufdiagramm Upload und Analyse</div>
+        <div class="flow">
+          <div class="box">
+            <strong>1. Datei wählen</strong>
+            <small>Benutzer wählt eine PDF im Upload-Dialog</small>
+          </div>
+          <div class="box">
+            <strong>2. POST /api/documents</strong>
+            <small>Frontend sendet FormData mit Feld file</small>
+          </div>
+          <div class="box">
+            <strong>3. Validieren</strong>
+            <small>Datei muss vorhanden und PDF sein</small>
+          </div>
+          <div class="box">
+            <strong>4. Speichern</strong>
+            <small>PDF wird über DocumentStorage abgelegt</small>
+          </div>
+          <div class="box">
+            <strong>5. Analysieren</strong>
+            <small>Text, Match und Kategorie werden berechnet</small>
+          </div>
+        </div>
+      </div>
+
+      <ol>
+        <li><code>DocumentUploadController.upload</code> nimmt <code>MultipartFile file</code> entgegen und antwortet bei Erfolg mit HTTP 201.</li>
+        <li><code>DocumentUploadService.upload</code> validiert die Datei über <code>DocumentUploadValidator</code>.</li>
+        <li>Die Datei wird über den Port <code>DocumentStorage.store</code> gespeichert. Im MVP schreibt <code>LocalDocumentStorage</code> lokal nach <code>./data/documents</code>.</li>
+        <li>Danach wird ein <code>Document</code> mit Status <code>UPLOADED</code> gespeichert. Zu diesem Zeitpunkt ist noch kein Mitarbeiter zugeordnet.</li>
+        <li><code>DocumentAnalysisService.analyze</code> extrahiert erneut den InputStream, analysiert den Text und speichert eine <code>DocumentAnalysis</code> mit <code>ReviewStatus.PENDING</code>.</li>
+        <li>Falls nach dem Speichern der Datei ein Runtime-Fehler passiert, löscht der Service die bereits abgelegte Datei wieder. Das kompensiert, dass Dateisystem und Datenbank keine gemeinsame Transaktion bilden.</li>
+      </ol>
+
+      <h3>Analyse-Entscheidung</h3>
+      <div class="diagram">
+        <div class="flow four">
+          <div class="box">
+            <strong>PDFBox Extraktion</strong>
+            <small>Text wird aus dem PDF gelesen</small>
+          </div>
+          <div class="box">
+            <strong>Erfolg?</strong>
+            <small>SUCCESS oder EMPTY/ENCRYPTED/CORRUPTED</small>
+          </div>
+          <div class="box">
+            <strong>Readable Path</strong>
+            <small>PersonMatcher und DocumentClassifier laufen</small>
+          </div>
+          <div class="box">
+            <strong>Analyse speichern</strong>
+            <small>Status, Evidenz, Score, Kategorie</small>
+          </div>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Ergebnis</th>
+            <th>Bedeutung</th>
+            <th>Score im Backend</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>MATCHED</code></td>
+            <td>Genau ein bekannter Mitarbeitername wurde gefunden.</td>
+            <td><code>1.0000</code></td>
+          </tr>
+          <tr>
+            <td><code>AMBIGUOUS</code></td>
+            <td>Mehrere bekannte Mitarbeiternamen wurden gefunden.</td>
+            <td><code>0.5000</code></td>
+          </tr>
+          <tr>
+            <td><code>NO_MATCH</code></td>
+            <td>Kein bekannter Mitarbeitername wurde gefunden.</td>
+            <td>kein Score</td>
+          </tr>
+          <tr>
+            <td><code>UNREADABLE</code></td>
+            <td>PDF ist leer, verschlüsselt oder beschädigt.</td>
+            <td>kein Score</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="page-break">
+      <h2>4. Namenszuordnung im Detail</h2>
+      <p>
+        Die Mitarbeiterzuordnung ist absichtlich deterministisch gebaut. Das bedeutet: Das System lässt kein Sprachmodell raten, welcher Mitarbeiter gemeint sein könnte, sondern prüft nachvollziehbar, ob der vollständige Name eines bekannten Mitarbeiters im extrahierten PDF-Text vorkommt.
+      </p>
+
+      <div class="diagram">
+        <div class="diagram-title">Ablaufdiagramm Namensmatching</div>
+        <div class="flow five">
+          <div class="box">
+            <strong>1. PDF-Text</strong>
+            <small>Text kommt aus PdfTextExtractor</small>
+          </div>
+          <div class="box">
+            <strong>2. Kandidaten</strong>
+            <small>EmployeeRepository liefert alle Mitarbeiter</small>
+          </div>
+          <div class="box">
+            <strong>3. Normalisieren</strong>
+            <small>Unicode, Kleinschreibung, Whitespace</small>
+          </div>
+          <div class="box">
+            <strong>4. Vollnamen suchen</strong>
+            <small>Regex mit Buchstaben-Grenzen</small>
+          </div>
+          <div class="box">
+            <strong>5. Status bilden</strong>
+            <small>MATCHED, NO_MATCH oder AMBIGUOUS</small>
+          </div>
+        </div>
+      </div>
+
+      <h3>Wie <code>PersonMatcher</code> arbeitet</h3>
+      <ol>
+        <li><code>DocumentAnalysisService.matchPerson</code> lädt alle Mitarbeiter aus der Datenbank.</li>
+        <li>Aus jedem Mitarbeiter wird ein <code>MatchCandidate</code> mit <code>employeeId</code> und vollständigem Namen gebaut, zum Beispiel <code>Anna Müller</code>.</li>
+        <li><code>PersonMatcher.match</code> normalisiert zuerst den extrahierten PDF-Text.</li>
+        <li>Danach wird auch jeder Kandidatenname normalisiert.</li>
+        <li>Für jeden vollständigen Namen wird geprüft, ob er als eigenständiger Texttreffer im Dokument vorkommt.</li>
+        <li>Aus der Anzahl der Treffer entsteht das Ergebnis: kein Treffer, genau ein Treffer oder mehrere Treffer.</li>
+      </ol>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Normalisierung</th>
+            <th>Warum sie wichtig ist</th>
+            <th>Beispiel</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Unicode-Normalisierung mit <code>NFKC</code></td>
+            <td>PDF-Extraktion kann Sonderzeichen unterschiedlich kodieren. Der Vergleich soll trotzdem stabil bleiben.</td>
+            <td><code>Müller</code> bleibt auch dann vergleichbar, wenn Zeichen intern anders repräsentiert sind.</td>
+          </tr>
+          <tr>
+            <td>Kleinschreibung mit <code>Locale.ROOT</code></td>
+            <td>Groß- und Kleinschreibung darf keine Rolle spielen.</td>
+            <td><code>ANNA MÜLLER</code> matcht <code>Anna Müller</code>.</td>
+          </tr>
+          <tr>
+            <td>Whitespace wird zusammengezogen</td>
+            <td>PDFs enthalten oft Zeilenumbrüche, Tabs oder mehrere Leerzeichen.</td>
+            <td><code>Anna\n\nMüller</code> wird zu <code>anna müller</code>.</td>
+          </tr>
+          <tr>
+            <td>Regex mit Buchstaben-Grenzen</td>
+            <td>Teiltreffer sollen verhindert werden.</td>
+            <td><code>Anna Müller</code> matcht nicht in <code>Annalena Müller-Schmidt</code>.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Entscheidungsfälle</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Dokumentinhalt</th>
+            <th>Ergebnis</th>
+            <th>Begründung</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>Arbeitsvertrag für Anna Müller</code></td>
+            <td><code>MATCHED</code></td>
+            <td>Genau ein vollständiger Mitarbeitername wurde gefunden. Die Analyse speichert die passende <code>employeeId</code> als Vorschlag.</td>
+          </tr>
+          <tr>
+            <td><code>Anna hat unterschrieben</code></td>
+            <td><code>NO_MATCH</code></td>
+            <td>Nur der Vorname reicht nicht. Das verhindert falsche Zuordnungen bei häufigen Vornamen.</td>
+          </tr>
+          <tr>
+            <td><code>Zeugen: Anna Müller und David Schneider</code></td>
+            <td><code>AMBIGUOUS</code></td>
+            <td>Mehrere bekannte vollständige Namen wurden gefunden. Das Backend wählt dann bewusst keinen Mitarbeiter automatisch aus.</td>
+          </tr>
+          <tr>
+            <td><code>Dieses Dokument nennt keinen bekannten Namen</code></td>
+            <td><code>NO_MATCH</code></td>
+            <td>Kein Kandidatenname kommt im Text vor. Der Benutzer muss im Review manuell auswählen.</td>
+          </tr>
+          <tr>
+            <td>Leeres, verschlüsseltes oder defektes PDF</td>
+            <td><code>UNREADABLE</code></td>
+            <td>Die Textextraktion ist nicht erfolgreich. Ohne Text findet kein Matching statt.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="note">
+        Wichtig: Ein <code>MATCHED</code> ist in dieser App trotzdem noch keine finale Ablage. Es ist ein Systemvorschlag. Die eigentliche Zuordnung passiert erst, wenn der Benutzer den Prüffall bestätigt.
+      </div>
+    </section>
+
+    <section class="page-break">
+      <h2>5. Warum kein LLM für die Namenszuordnung?</h2>
+      <p>
+        Ein LLM ist hier für die Mitarbeiterzuordnung nicht sinnvoll, weil die Aufgabe kein offenes Sprachverständnisproblem ist. Die App kennt die vollständige Liste der erlaubten Mitarbeiter bereits. Gesucht wird nicht eine freie Interpretation, sondern ein prüfbarer Treffer gegen genau diese Liste.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Kriterium</th>
+            <th>Deterministisches Matching</th>
+            <th>LLM-basierte Zuordnung</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Nachvollziehbarkeit</td>
+            <td class="status-high">Sehr hoch: Treffer und Evidenz sind direkt erklärbar.</td>
+            <td class="status-medium">Begründungen können plausibel klingen, sind aber nicht automatisch beweisend.</td>
+          </tr>
+          <tr>
+            <td>Fehlerverhalten</td>
+            <td class="status-high">Konservativ: kein Name oder mehrere Namen führen zu Review statt Auto-Entscheidung.</td>
+            <td class="status-risk">Kann trotz Unsicherheit eine wahrscheinlich wirkende Antwort liefern.</td>
+          </tr>
+          <tr>
+            <td>Datenschutz</td>
+            <td class="status-high">PDF-Text bleibt lokal im Backend.</td>
+            <td class="status-risk">Bei externer API müsste sensibler Dokumenttext an einen Anbieter übertragen werden.</td>
+          </tr>
+          <tr>
+            <td>Kosten und Latenz</td>
+            <td class="status-high">Schnell, lokal und kostenlos pro Anfrage.</td>
+            <td class="status-medium">Zusätzliche API-Kosten, Netzwerklatenz und Ausfallrisiko.</td>
+          </tr>
+          <tr>
+            <td>Testbarkeit</td>
+            <td class="status-high">Stabil über Unit-Tests prüfbar.</td>
+            <td class="status-medium">Antworten können modell- und promptabhängig variieren.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>
+        Der sinnvollere Einsatzpunkt für ein LLM wäre nicht die Identifikation des Mitarbeiters, sondern die optionale Dokumentklassifikation: Ein Sprachmodell könnte aus dem Inhalt ableiten, ob es zum Beispiel um Vertrag, Gehalt, Kündigung, Zertifikat oder eine neue Kategorie geht. Auch dort darf es in dieser Architektur aber nur vorschlagen. Es darf keine Kategorie anlegen und kein Dokument endgültig zuordnen.
+      </p>
+
+      <div class="diagram">
+        <div class="diagram-title">Sinnvolle Grenze zwischen Regel und LLM</div>
+        <div class="flow three">
+          <div class="box">
+            <strong>Mitarbeiter finden</strong>
+            <small>Deterministisch, weil erlaubte Namen bekannt sind</small>
+          </div>
+          <div class="box">
+            <strong>Kategorie vorschlagen</strong>
+            <small>Optional LLM-fähig, weil Inhalt semantisch interpretiert wird</small>
+          </div>
+          <div class="box">
+            <strong>Final bestätigen</strong>
+            <small>Immer Mensch, keine unbeaufsichtigte Entscheidung</small>
+          </div>
+        </div>
+      </div>
+
+      <h3>Warum die aktuelle Lösung fachlich passt</h3>
+      <ul>
+        <li>Die Mitarbeiterliste ist klein, vollständig und kontrolliert.</li>
+        <li>Die gewünschte Zuordnung hängt an einem harten Identifikator: dem vollständigen Namen.</li>
+        <li>Falsche Zuordnungen wären fachlich schlimmer als ein zusätzlicher manueller Prüfschritt.</li>
+        <li>Ambige Fälle werden sichtbar gemacht, statt verdeckt automatisch entschieden zu werden.</li>
+        <li>Die Evidenz ist konkret: <code>Name im Dokument gefunden: 'Anna Müller'</code>.</li>
+      </ul>
+    </section>
+
+    <section class="page-break">
+      <h2>6. Backend-Ablauf: Review und Bestätigung</h2>
+      <p>
+        Der Review-Prozess ist bewusst nicht vollautomatisch. Auch wenn das System einen Mitarbeiter sicher findet, bleibt die Analyse zuerst ein Prüffall. Erst die Bestätigung im Frontend setzt das Dokument auf <code>ASSIGNED</code>.
+      </p>
+
+      <div class="diagram">
+        <div class="diagram-title">Ablaufdiagramm Prüffall bestätigen</div>
+        <div class="flow">
+          <div class="box">
+            <strong>1. Reviews laden</strong>
+            <small>GET /api/documents/pending-review</small>
+          </div>
+          <div class="box">
+            <strong>2. Auswahl prüfen</strong>
+            <small>Mitarbeiter und Kategorie im Frontend</small>
+          </div>
+          <div class="box">
+            <strong>3. Confirm senden</strong>
+            <small>POST /api/documents/{id}/confirmation</small>
+          </div>
+          <div class="box">
+            <strong>4. Backend validiert</strong>
+            <small>Employee existiert, Kategorie eindeutig</small>
+          </div>
+          <div class="box">
+            <strong>5. Zuweisen</strong>
+            <small>Document ASSIGNED, Analyse CONFIRMED</small>
+          </div>
+        </div>
+      </div>
+
+      <p>
+        <code>DocumentReviewService.confirm</code> verhindert ungültige Zustände: <code>employeeId</code> ist Pflicht, <code>categoryId</code> und <code>newCategoryName</code> schließen sich gegenseitig aus, und bereits bestätigte Dokumente können nicht erneut bestätigt werden.
+      </p>
+
+      <div class="note">
+        Ein vorgeschlagener Kategoriename wird nur dann mit Ursprung <code>LLM_SUGGESTED</code> gespeichert, wenn der bestätigte Name exakt dem Vorschlag entspricht. Andernfalls gilt die Kategorie als <code>MANUAL</code>.
+      </div>
+    </section>
+
+    <section>
+      <h2>7. Datenmodell</h2>
+      <p>
+        PostgreSQL enthält Metadaten, Stammdaten und Analyseergebnisse. Die eigentlichen PDF-Bytes liegen nicht in der Datenbank, sondern hinter <code>DocumentStorage</code>.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Tabelle</th>
+            <th>Wichtige Felder</th>
+            <th>Beschreibung</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>employees</code></td>
+            <td><code>id</code>, <code>personnel_number</code>, <code>first_name</code>, <code>last_name</code>, <code>department</code></td>
+            <td>Zehn synthetische Mitarbeiter, über Flyway geseedet.</td>
+          </tr>
+          <tr>
+            <td><code>document_categories</code></td>
+            <td><code>id</code>, <code>code</code>, <code>display_name</code>, <code>origin</code></td>
+            <td>Standardordner sowie manuell oder vorgeschlagen erzeugte Kategorien.</td>
+          </tr>
+          <tr>
+            <td><code>documents</code></td>
+            <td><code>employee_id</code>, <code>original_filename</code>, <code>storage_key</code>, <code>status</code></td>
+            <td>Dokumentmetadaten und endgültige Mitarbeiterzuordnung.</td>
+          </tr>
+          <tr>
+            <td><code>document_analyses</code></td>
+            <td><code>match_status</code>, <code>matched_employee_id</code>, <code>suggested_category_id</code>, <code>review_status</code>, <code>evidence</code></td>
+            <td>Analyseergebnis und menschlicher Review-Status.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="diagram">
+        <div class="diagram-title">Vereinfachte Beziehungen</div>
+        <div class="flow four">
+          <div class="box">
+            <strong>employees</strong>
+            <small>1 Mitarbeiter</small>
+          </div>
+          <div class="box">
+            <strong>documents</strong>
+            <small>n Dokumente je Mitarbeiter nach Bestätigung</small>
+          </div>
+          <div class="box">
+            <strong>document_analyses</strong>
+            <small>1 Analyse je Dokument</small>
+          </div>
+          <div class="box">
+            <strong>document_categories</strong>
+            <small>optional je Dokument und Analyse</small>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page-break">
+      <h2>8. REST API</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Methode</th>
+            <th>Pfad</th>
+            <th>Frontend-Nutzung</th>
+            <th>Antwort / Wirkung</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>GET</code></td>
+            <td><code>/api/employees</code></td>
+            <td><code>useEmployees</code>, Dashboard und Review</td>
+            <td>Liste aller Mitarbeiter.</td>
+          </tr>
+          <tr>
+            <td><code>GET</code></td>
+            <td><code>/api/employees/{employeeId}</code></td>
+            <td><code>useEmployee</code>, Detailseite</td>
+            <td>Stammdaten eines Mitarbeiters.</td>
+          </tr>
+          <tr>
+            <td><code>GET</code></td>
+            <td><code>/api/employees/{employeeId}/documents</code></td>
+            <td><code>useEmployeeDocuments</code></td>
+            <td>Bestätigte Dokumente eines Mitarbeiters.</td>
+          </tr>
+          <tr>
+            <td><code>GET</code></td>
+            <td><code>/api/document-categories</code></td>
+            <td><code>useDocumentCategories</code></td>
+            <td>Alle verfügbaren Kategorien.</td>
+          </tr>
+          <tr>
+            <td><code>POST</code></td>
+            <td><code>/api/documents</code></td>
+            <td><code>useUploadDocument</code></td>
+            <td>Speichert PDF und erzeugt Analyse.</td>
+          </tr>
+          <tr>
+            <td><code>GET</code></td>
+            <td><code>/api/documents/pending-review</code></td>
+            <td><code>usePendingReviews</code></td>
+            <td>Offene Prüfung.</td>
+          </tr>
+          <tr>
+            <td><code>POST</code></td>
+            <td><code>/api/documents/{documentId}/confirmation</code></td>
+            <td><code>useConfirmMatch</code></td>
+            <td>Bestätigt Mitarbeiter und Kategorie.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>9. Frontend-Architektur</h2>
+      <p>
+        Das Frontend ist nach App-, Page-, Feature- und Shared-Bereichen organisiert. Routen und Provider sitzen zentral, fachliche Logik liegt in Feature-Ordnern, wiederverwendbare Bausteine in <code>shared</code>.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Bereich</th>
+            <th>Dateien / Komponenten</th>
+            <th>Aufgabe</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>App Shell</td>
+            <td><code>AppShell</code>, <code>AppTopBar</code>, <code>NavigationDrawer</code>, <code>GlobalUploadButton</code></td>
+            <td>Gemeinsamer Rahmen mit Navigation, Suche und globalem Upload.</td>
+          </tr>
+          <tr>
+            <td>Routing</td>
+            <td><code>AppRoutes</code></td>
+            <td>Definiert <code>/</code>, <code>/employees/:employeeId</code> und <code>/reviews</code>.</td>
+          </tr>
+          <tr>
+            <td>Datenzugriff</td>
+            <td><code>fetchJson</code>, Feature-APIs und Hooks</td>
+            <td>Kapselt REST-Aufrufe und Fehlerbehandlung.</td>
+          </tr>
+          <tr>
+            <td>State / Cache</td>
+            <td>TanStack Query</td>
+            <td>Hält Serverdaten, Ladezustände, Fehlerzustände und Cache-Invalidierung.</td>
+          </tr>
+          <tr>
+            <td>Texte</td>
+            <td><code>shared/i18n/de.ts</code></td>
+            <td>Zentrale deutsche UI-Texte, damit Formulierungen nicht im Code verteilt sind.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="diagram">
+        <div class="diagram-title">Frontend-Fluss</div>
+        <div class="flow five">
+          <div class="box">
+            <strong>main.tsx</strong>
+            <small>Mountet React App</small>
+          </div>
+          <div class="box">
+            <strong>AppProviders</strong>
+            <small>Router, QueryClient, Theme</small>
+          </div>
+          <div class="box">
+            <strong>AppShell</strong>
+            <small>Layout, Navigation, Suche, Upload</small>
+          </div>
+          <div class="box">
+            <strong>AppRoutes</strong>
+            <small>Wählt die passende Seite</small>
+          </div>
+          <div class="box">
+            <strong>Feature Hooks</strong>
+            <small>Laden und mutieren Serverdaten</small>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page-break">
+      <h2>10. Frontend-Abläufe</h2>
+
+      <h3>Dashboard</h3>
+      <ol>
+        <li><code>DashboardPage</code> ruft <code>useEmployees</code> auf.</li>
+        <li>Die Daten werden über <code>fetchEmployees</code> von <code>GET /api/employees</code> geladen.</li>
+        <li>Die globale Suche filtert lokal nach Name, Personalnummer und Abteilung.</li>
+        <li><code>EmployeeDataGrid</code> zeigt die Mitarbeiter und navigiert zur Detailseite.</li>
+      </ol>
+
+      <h3>Mitarbeiterdetail</h3>
+      <ol>
+        <li><code>EmployeeDetailPage</code> liest <code>employeeId</code> aus der Route.</li>
+        <li>Parallel werden Mitarbeiterdaten, Kategorien und Dokumente geladen.</li>
+        <li>Dokumente werden nach <code>categoryId</code> gruppiert.</li>
+        <li><code>CategoryFolderTabs</code> zeigt Ordner, <code>DocumentList</code> zeigt die passenden Dokumente.</li>
+      </ol>
+
+      <h3>Upload</h3>
+      <div class="diagram">
+        <div class="flow five">
+          <div class="box">
+            <strong>GlobalUploadButton</strong>
+            <small>öffnet UploadDialog</small>
+          </div>
+          <div class="box">
+            <strong>FileDropZone</strong>
+            <small>PDF auswählen oder droppen</small>
+          </div>
+          <div class="box">
+            <strong>useUploadDocument</strong>
+            <small>Mutation mit FormData</small>
+          </div>
+          <div class="box">
+            <strong>Backend Analyse</strong>
+            <small>Dokument wird PENDING</small>
+          </div>
+          <div class="box">
+            <strong>Cache invalidieren</strong>
+            <small>pending-reviews wird neu geladen</small>
+          </div>
+        </div>
+      </div>
+
+      <h3>Review-Seite</h3>
+      <ol>
+        <li><code>ReviewPage</code> lädt Prüfung, Mitarbeiter und Kategorien.</li>
+        <li>Jeder Prüffall wird als <code>PendingReviewCard</code> dargestellt.</li>
+        <li>Der Benutzer wählt oder korrigiert Mitarbeiter und Kategorie.</li>
+        <li><code>useConfirmMatch</code> sendet die Bestätigung an das Backend.</li>
+        <li>Nach Erfolg werden relevante Query-Caches aktualisiert, sodass Dashboard, Detailseite und Review konsistent bleiben.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>11. Fehlerbehandlung und Sicherheit</h2>
+      <ul>
+        <li>Das Frontend kapselt fehlerhafte HTTP-Antworten in <code>ApiError</code> und zeigt wiederverwendbare Fehlerzustände über <code>ErrorState</code>.</li>
+        <li>Spring Boot gibt Problem-Details über den globalen Exception Handler zurück.</li>
+        <li>PDF-Text, personenbezogene Inhalte und API-Schlüssel sollen nicht geloggt werden.</li>
+        <li>Das MVP enthält keine Authentifizierung und keine OCR-Verarbeitung. Bildbasierte oder verschlüsselte PDFs werden daher als <code>UNREADABLE</code> behandelt.</li>
+        <li>Die automatische Analyse trifft keine endgültige Zuordnung. Die Bestätigung bleibt ein expliziter Benutzer-Schritt.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>12. Testabdeckung</h2>
+      <p>
+        Das Projekt enthält Backend-Tests für Controller, Services, Repositories, Matching, Klassifikation, PDF-Extraktion, Storage und Integration mit PostgreSQL/Testcontainers. Im Frontend testen Vitest und React Testing Library Kernkomponenten, API-Helfer und Upload-Verhalten.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>Ebene</th>
+            <th>Beispiele</th>
+            <th>Ziel</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Backend Unit</td>
+            <td><code>PersonMatcherTest</code>, <code>RuleBasedDocumentClassifierTest</code>, <code>DocumentUploadServiceTest</code></td>
+            <td>Fachlogik isoliert prüfen.</td>
+          </tr>
+          <tr>
+            <td>Backend Web/DB</td>
+            <td><code>DocumentUploadControllerTest</code>, <code>PostgresIntegrationTest</code></td>
+            <td>REST-Verhalten und Persistenz prüfen.</td>
+          </tr>
+          <tr>
+            <td>Frontend</td>
+            <td><code>DashboardPage.test.tsx</code>, <code>ReviewPage.test.tsx</code>, <code>UploadDialog.test.tsx</code></td>
+            <td>Nutzerflüsse und UI-Zustände absichern.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>13. Wichtige Grenzen des MVP</h2>
+      <ul>
+        <li>Keine Authentifizierung, Rollen oder Berechtigungen.</li>
+        <li>Keine OCR für gescannte PDFs.</li>
+        <li>Keine Cloud-Ablage, kein Virenscan und keine produktive Retention Policy.</li>
+        <li>Keine automatische finale Zuordnung ohne menschliche Bestätigung.</li>
+        <li>Die Klassifikation ist regelbasiert und bewusst deterministisch; ein echter LLM-Adapter ist nur architektonisch vorbereitet.</li>
+      </ul>
+    </section>
+  </body>
+</html>

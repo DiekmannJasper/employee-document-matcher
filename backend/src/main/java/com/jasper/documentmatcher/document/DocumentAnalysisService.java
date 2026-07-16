@@ -20,7 +20,7 @@ class DocumentAnalysisService {
     private static final BigDecimal DETERMINISTIC_MATCH_SCORE = new BigDecimal("1.0000");
     private static final BigDecimal AMBIGUOUS_MATCH_SCORE = new BigDecimal("0.5000");
 
-    private final PdfTextExtractor pdfTextExtractor;
+    private final DocumentTextExtractorResolver textExtractorResolver;
     private final PersonMatcher personMatcher;
     private final DocumentClassifier documentClassifier;
     private final EmployeeRepository employeeRepository;
@@ -28,13 +28,13 @@ class DocumentAnalysisService {
     private final DocumentAnalysisRepository documentAnalysisRepository;
 
     DocumentAnalysisService(
-            PdfTextExtractor pdfTextExtractor,
+            DocumentTextExtractorResolver textExtractorResolver,
             PersonMatcher personMatcher,
             DocumentClassifier documentClassifier,
             EmployeeRepository employeeRepository,
             DocumentCategoryRepository documentCategoryRepository,
             DocumentAnalysisRepository documentAnalysisRepository) {
-        this.pdfTextExtractor = pdfTextExtractor;
+        this.textExtractorResolver = textExtractorResolver;
         this.personMatcher = personMatcher;
         this.documentClassifier = documentClassifier;
         this.employeeRepository = employeeRepository;
@@ -42,10 +42,10 @@ class DocumentAnalysisService {
         this.documentAnalysisRepository = documentAnalysisRepository;
     }
 
-    DocumentAnalysis analyze(UUID documentId, InputStream pdfContent) {
-        var extraction = pdfTextExtractor.extract(pdfContent);
+    DocumentAnalysis analyze(UUID documentId, DocumentFormat format, InputStream content) {
+        var extraction = textExtractorResolver.extract(format, content);
 
-        var analysis = extraction.status() == PdfExtractionStatus.SUCCESS
+        var analysis = extraction.status() == DocumentExtractionStatus.SUCCESS
                 ? analyzeReadableDocument(documentId, extraction.text())
                 : unreadableDocument(documentId, extraction.status());
 
@@ -96,12 +96,12 @@ class DocumentAnalysisService {
         return documentClassifier.classify(text, candidates);
     }
 
-    private DocumentAnalysis unreadableDocument(UUID documentId, PdfExtractionStatus extractionStatus) {
+    private DocumentAnalysis unreadableDocument(UUID documentId, DocumentExtractionStatus extractionStatus) {
         var evidence =
                 switch (extractionStatus) {
-                    case EMPTY -> "PDF enthält keinen erkennbaren Text.";
-                    case ENCRYPTED -> "PDF ist passwortgeschützt und konnte nicht analysiert werden.";
-                    case CORRUPTED -> "PDF konnte nicht gelesen werden.";
+                    case EMPTY -> "Datei enthält keinen erkennbaren Text.";
+                    case ENCRYPTED -> "Datei ist passwortgeschützt und konnte nicht analysiert werden.";
+                    case CORRUPTED -> "Datei konnte nicht gelesen werden.";
                     case SUCCESS -> throw new IllegalStateException("Unexpected SUCCESS in failure path");
                 };
 

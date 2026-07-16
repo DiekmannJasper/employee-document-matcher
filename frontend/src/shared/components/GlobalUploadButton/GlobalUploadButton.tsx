@@ -11,7 +11,7 @@ export function GlobalUploadButton({ onClick }: GlobalUploadButtonProps) {
 
   if (isCompact) {
     return (
-      <IconButton color="inherit" aria-label={de.upload.title} onClick={onClick}>
+      <IconButton color="inherit" aria-label={de.upload.buttonLabel} onClick={onClick}>
         <UploadFile />
       </IconButton>
     );
@@ -19,7 +19,7 @@ export function GlobalUploadButton({ onClick }: GlobalUploadButtonProps) {
 
   return (
     <Button color="inherit" variant="outlined" startIcon={<UploadFile />} onClick={onClick}>
-      {de.upload.title}
+      {de.upload.buttonLabel}
     </Button>
   );
 }

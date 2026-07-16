@@ -28,6 +28,9 @@ public class Document {
     @Column(name = "storage_key", nullable = false, unique = true)
     private String storageKey;
 
+    @Column(name = "content_type", nullable = false, length = 150)
+    private String contentType;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private DocumentStatus status;
@@ -43,12 +46,14 @@ public class Document {
             UUID employeeId,
             String originalFilename,
             String storageKey,
+            String contentType,
             DocumentStatus status,
             Instant uploadedAt) {
         this.id = id;
         this.employeeId = employeeId;
         this.originalFilename = originalFilename;
         this.storageKey = storageKey;
+        this.contentType = contentType;
         this.status = status;
         this.uploadedAt = uploadedAt;
     }
@@ -71,6 +76,10 @@ public class Document {
 
     public String getStorageKey() {
         return storageKey;
+    }
+
+    public String getContentType() {
+        return contentType;
     }
 
     public DocumentStatus getStatus() {

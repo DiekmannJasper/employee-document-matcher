@@ -16,6 +16,7 @@ export interface PendingReview {
   readonly suggestedCategoryName: string | null;
   readonly categoryEvidence: string | null;
   readonly llmConfidence: ConfidenceLevel;
+  readonly contentType: string;
   readonly uploadedAt: string;
 }
 
@@ -28,6 +29,10 @@ export interface ConfirmMatchInput {
 
 export function fetchPendingReviews(): Promise<PendingReview[]> {
   return fetchJson<PendingReview[]>("/api/documents/pending-review");
+}
+
+export function getReviewDocumentFileUrl(documentId: string): string {
+  return `/api/documents/${documentId}/file`;
 }
 
 export function confirmMatch({ documentId, employeeId, categoryId, newCategoryName }: ConfirmMatchInput): Promise<DocumentSummary> {

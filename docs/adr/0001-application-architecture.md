@@ -68,3 +68,16 @@ confirmation. Inputs and outputs are constrained and validated server-side.
 - OCR, authentication, malware scanning and cloud storage remain production work.
 - Combining MUI and Tailwind requires a documented styling boundary to avoid
   conflicting declarations.
+
+## Update (2026-07-14): additional upload formats
+
+Manual upload and external import were extended to accept Word (`.docx`) and
+XML in addition to PDF. Text extraction moved from a single concrete
+`PdfTextExtractor` behind a `DocumentTextExtractor` port, mirroring the
+existing `DocumentClassifier` port pattern, with one implementation per
+format. The `.docx`/XML extractors are implemented on the JDK's built-in StAX
+parser rather than adding Apache POI, to avoid pulling in a large dependency
+chain for text extraction this narrow. OCR/scanned-image support (e.g. JPG)
+remains explicitly out of scope for the same reason as before: it is a
+materially different feature (an inference step with its own accuracy/cost
+trade-offs), not another text extractor.

@@ -12,7 +12,7 @@ describe("App", () => {
     );
 
     expect(
-      screen.getByRole("heading", { name: "Employee Document Matcher" }),
+      screen.getByRole("heading", { name: "Personal Dokumenten Verwaltung" }),
     ).toBeInTheDocument();
   });
 });

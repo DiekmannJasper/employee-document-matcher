@@ -59,7 +59,7 @@ export function FileDropZone({ onFileSelected }: FileDropZoneProps) {
       <input
         ref={inputRef}
         type="file"
-        accept="application/pdf"
+        accept=".pdf,.docx,.xml,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/xml,text/xml"
         hidden
         onChange={(event) => {
           const file = event.target.files?.[0];

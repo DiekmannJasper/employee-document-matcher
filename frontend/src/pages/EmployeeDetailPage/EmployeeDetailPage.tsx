@@ -81,7 +81,7 @@ export function EmployeeDetailPage() {
           {visibleDocuments.length === 0 ? (
             <EmptyState message={de.documents.categoryEmpty} />
           ) : (
-            <DocumentList documents={visibleDocuments} />
+            <DocumentList employeeId={employeeQuery.data.id} categories={categoriesQuery.data ?? []} documents={visibleDocuments} />
           )}
         </>
       )}

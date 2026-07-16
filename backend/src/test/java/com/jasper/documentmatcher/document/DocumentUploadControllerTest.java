@@ -29,7 +29,7 @@ class DocumentUploadControllerTest {
         var file = new MockMultipartFile("file", "vertrag.pdf", "application/pdf", "%PDF-1.4".getBytes());
         when(documentUploadService.upload(any()))
                 .thenReturn(new DocumentUploadResponse(
-                        UUID.randomUUID(), "vertrag.pdf", DocumentStatus.UPLOADED, Instant.now()));
+                        UUID.randomUUID(), "vertrag.pdf", DocumentStatus.UPLOADED, Instant.now(), null, null));
 
         mockMvc.perform(multipart("/api/documents").file(file)).andExpect(status().isCreated());
     }

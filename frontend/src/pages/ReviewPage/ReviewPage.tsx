@@ -1,4 +1,4 @@
-import { Stack, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { useDocumentCategories } from "../../features/document-categories/hooks/useDocumentCategories";
 import { PendingReviewCard } from "../../features/document-review/components/PendingReviewCard";
 import { usePendingReviews } from "../../features/document-review/hooks/usePendingReviews";
@@ -37,7 +37,7 @@ export function ReviewPage() {
         <EmptyState message={de.review.empty} />
       )}
       {!isPending && !isError && pendingReviewsQuery.data && pendingReviewsQuery.data.length > 0 && (
-        <Stack spacing={2}>
+        <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "repeat(2, 1fr)" }, gap: 2 }}>
           {pendingReviewsQuery.data.map((review) => (
             <PendingReviewCard
               key={review.documentId}
@@ -46,7 +46,7 @@ export function ReviewPage() {
               categories={categoriesQuery.data ?? []}
             />
           ))}
-        </Stack>
+        </Box>
       )}
     </PageContainer>
   );

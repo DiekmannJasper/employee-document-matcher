@@ -24,7 +24,7 @@ class PdfTextExtractorTest {
 
         var result = extractor.extract(new ByteArrayInputStream(pdfBytes));
 
-        assertThat(result.status()).isEqualTo(PdfExtractionStatus.SUCCESS);
+        assertThat(result.status()).isEqualTo(DocumentExtractionStatus.SUCCESS);
         assertThat(result.text()).contains("Anna Müller");
     }
 
@@ -34,7 +34,7 @@ class PdfTextExtractorTest {
 
         var result = extractor.extract(new ByteArrayInputStream(pdfBytes));
 
-        assertThat(result.status()).isEqualTo(PdfExtractionStatus.EMPTY);
+        assertThat(result.status()).isEqualTo(DocumentExtractionStatus.EMPTY);
         assertThat(result.text()).isNull();
     }
 
@@ -44,7 +44,7 @@ class PdfTextExtractorTest {
 
         var result = extractor.extract(new ByteArrayInputStream(garbage));
 
-        assertThat(result.status()).isEqualTo(PdfExtractionStatus.CORRUPTED);
+        assertThat(result.status()).isEqualTo(DocumentExtractionStatus.CORRUPTED);
         assertThat(result.text()).isNull();
     }
 
@@ -54,7 +54,7 @@ class PdfTextExtractorTest {
 
         var result = extractor.extract(new ByteArrayInputStream(pdfBytes));
 
-        assertThat(result.status()).isEqualTo(PdfExtractionStatus.ENCRYPTED);
+        assertThat(result.status()).isEqualTo(DocumentExtractionStatus.ENCRYPTED);
         assertThat(result.text()).isNull();
     }
 
